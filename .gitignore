@@ -1,7 +1,7 @@
 # Logs
 logs
 *.log
-
+.idea/
 # Runtime data
 pids
 *.pid
@@ -20,12 +20,9 @@ coverage
 build/Release
 
 # Dependency directory
-# Commenting this out is preferred by some people, see
-# https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
+# Deployed apps should consider commenting this line out:
+# see https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
 node_modules
-
-# Users Environment Variables
-.lock-wscript
 
 # =========================
 # Operating System Files
@@ -38,8 +35,9 @@ node_modules
 .AppleDouble
 .LSOverride
 
-# Icon must end with two \r
-Icon
+# Icon must ends with two \r.
+Icon
+
 
 # Thumbnails
 ._*
@@ -47,13 +45,6 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
-
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
 
 # Windows
 # =========================

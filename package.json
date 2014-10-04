@@ -1,0 +1,53 @@
+{
+  "name": "twitch-irc",
+  "version": "1.0.0",
+  "description": "Twitch IRC library for NodeJS.",
+  "keywords": [
+    "irc",
+    "twitch",
+    "bot",
+    "lib",
+    "library"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Schmoopiie/twitch-irc.git"
+  },
+  "bugs": {
+    "url": "http://github.com/Schmoopiie/twitch-irc/issues"
+  },
+  "author": {
+    "name": "Schmoopiie",
+    "email": "Schmoopiie@gmail.com",
+    "url": "http://www.schmoopiie.com/"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "main": "./index",
+  "dependencies": {
+    "irc-message-stream": "^1.1.0",
+    "mkdirp": "^0.5.0",
+    "readable-stream": "^1.0.27-1",
+    "string": "^1.9.0",
+    "winston": "^0.7.3",
+    "locallydb": "*"
+  },
+  "devDependencies": {
+    "vows": "0.6.x"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "maintainers": [
+    {
+      "name": "Schmoopiie",
+      "email": "Schmoopiie@gmail.com"
+    }
+  ],
+  "directories": {},
+  "homepage": "https://github.com/Schmoopiie/passport-twitch"
+}
