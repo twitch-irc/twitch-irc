@@ -1,6 +1,6 @@
 {
   "name": "twitch-irc",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Twitch IRC library for NodeJS.",
   "keywords": [
     "irc",
@@ -49,5 +49,5 @@
     }
   ],
   "directories": {},
-  "homepage": "https://github.com/Schmoopiie/passport-twitch"
+  "homepage": "https://github.com/Schmoopiie/twitch-irc"
 }
