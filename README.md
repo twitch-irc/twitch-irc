@@ -1,8 +1,6 @@
 # twitch-irc
 [![Build Status](https://secure.travis-ci.org/Schmoopiie/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc)
 
-**This project includes**
-
 ![](http://i.imgur.com/7PMEvN5.png)
 Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the U.S. and/or other countries. "Twitch-IRC" is not operated by, sponsored by, or affiliated with Twitch Interactive, Inc. in any way.
 
@@ -17,23 +15,23 @@ $ npm install -g twitch-irc
 ## Configuration
 
 ``options``:
-- ``debug``: [_Boolean_] Show debug messages in the console. (Default is false)
-- ``debugIgnore``: [_Array_] Ignore some events when debugging. (Default is empty)
-- ``logging``: [_Boolean_] Logs the console to file. (Default is false)
-- ``tc``: [_Integer_] Your TWITCHCLIENT number. (Default is 3)
+- ``debug``: {Boolean} Show debug messages in the console. (Default is false)
+- ``debugIgnore``: {Array} Ignore some events when debugging.
+- ``logging``: {Boolean} Logs the console to file. (Default is false)
+- ``tc``: {Integer} Your TWITCHCLIENT number. (Default is 3)
 
 ``connection``:
-- ``retries``: [_Integer_] Maximum retries when trying to connect to server. (Default is -1 for infinite)
-- ``reconnect``: [_Boolean_] Reconnect to server when disconnected. (Default is true)
-- ``preferredServer``: [_String_] Connect to the specified server instead. (Optional)
-- ``preferredPort``: [_Integer_] Port of the preferred server.
-- ``serverType``: [_String_] Connect to a random server type. Types are chat, events and groups. (Default is chat)
+- ``retries``: {Integer} Maximum retries when trying to connect to server.
+- ``reconnect``: {Boolean} Reconnect to server upon disconnection.
+- ``preferredServer``: {String} Connect to the specified server instead. (Optional)
+- ``preferredPort``: {Integer} Port of the preferred server.
+- ``serverType``: {String} Connect to a random server type. Types are chat, events and groups. (Default is chat)
 
 ``identity``:
-- ``username``: [_String_] Username of your bot. (Optional)
-- ``passpord``: [_String_] OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
+- ``username``: {String} Username of your bot. (Optional)
+- ``passpord``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
 
-``channels``: [_Array_] List of channels to join when connected to server. (Default is empty)
+``channels``: {Array} List of channels to join when connected to server.
 
 ## How it works
 
@@ -60,9 +58,10 @@ client.connect();
 
 // Your events..
 client.addListener('chat', function (channel, user, message) {
-    // Do your stuff.
+    // If the message starts with !hello..
     if (message.indexOf('!hello') === 0) {
-        // Say something.
+        // Say something
+        // https://github.com/Schmoopiie/twitch-irc/wiki/Command:-Say
         client.say(channel, 'Hey '+user.username+'! How you doing? Kappa');
     }
 });
