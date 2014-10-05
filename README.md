@@ -39,6 +39,7 @@ $ npm install -g twitch-irc
 
 ## How it works
 
+**Javascript**
 ```javascript
 var irc = require('twitch-irc');
 
@@ -69,6 +70,47 @@ client.addListener('chat', function (channel, user, message) {
         client.say(channel, 'Hey '+user.username+'! How you doing? Kappa');
     }
 });
+```
+
+**Coffeescript**
+```coffeescript
+irc = require("twitch-irc")
+
+# Calling a new client..
+client = new irc.client(
+  options:
+    debug: true
+    debugIgnore: [
+      "ping"
+      "chat"
+      "action"
+    ]
+    logging: false
+    tc: 3
+
+  identity:
+    username: "Username"
+    password: "oauth:your_oauth"
+
+  channels: [
+    "list"
+    "of"
+    "channels"
+  ]
+)
+
+# Connect the client to server..
+client.connect()
+
+# Your events..
+client.addListener "chat", (channel, user, message) ->
+  
+  # If the message starts with !hello..
+  if message.indexOf("!hello") is 0
+    # Say something
+    # https://github.com/Schmoopiie/twitch-irc/wiki/Command:-Say
+    client.say channel, "Hey " + user.username + "! How you doing? Kappa"
+  return
 ```
 
 ## Events
