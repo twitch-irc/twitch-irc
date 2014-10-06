@@ -808,6 +808,8 @@ client.prototype.mods = function mods(channel) {
 };
 
 var deferredGet     = Q.defer();
+var deferredInsert  = Q.defer();
+var deferredList    = Q.defer();
 var deferredUpdate  = Q.defer();
 var deferredWhere   = Q.defer();
 var deferredReplace = Q.defer();
@@ -823,7 +825,8 @@ client.prototype.db = {
         var collection = db.collection(collection);
         collection.insert(elements);
         collection.save();
-        return true;
+        deferredInsert.resolve(null);
+        return deferredInsert.promise;
     },
     /**
      * Retrieve elements.
@@ -858,7 +861,9 @@ client.prototype.db = {
      */
     list: function list(collection) {
         var collection = db.collection(collection);
-        return collection.list;
+        //return collection.items;
+        deferredList.resolve(collection.items);
+        return deferredList.promise;
     },
     /**
      * Update an element, it will add un-existed key and replace existed.
