@@ -1,6 +1,6 @@
 {
   "name": "twitch-irc",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Twitch IRC library for NodeJS.",
   "keywords": [
     "irc",
@@ -34,7 +34,8 @@
     "readable-stream": "^1.0.27-1",
     "string": "^1.9.0",
     "winston": "^0.7.3",
-    "locallydb": "*"
+    "locallydb": "*",
+    "q": "^2.0.2"
   },
   "devDependencies": {
     "vows": "0.6.x"
