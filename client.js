@@ -33,6 +33,9 @@ var locallydb     = require('locallydb');
 var db            = new locallydb('./database');
 var Q             = require('q');
 var lag           = new Date();
+var chalk         = require('chalk');
+var request       = require('request');
+var pkg           = require('./package.json');
 
 /**
  * Represents a new IRC client.
@@ -52,6 +55,19 @@ var client = function client(options) {
     this.socket = null;
 
     this.stream.on('data', this._handleMessage.bind(this));
+
+    var checkUpdates = (typeof self.options.options.checkUpdates != 'undefined') ? self.options.options.checkUpdates : true;
+
+    if (checkUpdates) {
+        request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                if (JSON.parse(body).version > pkg.version) {
+                    console.log('[' + chalk.red('!') + '] Update available: '+chalk.bold.yellow(JSON.parse(body).version)+chalk.dim.gray(' (current: '+pkg.version+')'));
+                    console.log('[' + chalk.red('!') + '] Run '+chalk.blue('npm install')+' to update.');
+                }
+            }
+        });
+    }
 
     process.on('uncaughtException', function (err) {
         self.logger.crash(err.stack);
@@ -861,7 +877,6 @@ client.prototype.db = {
      */
     list: function list(collection) {
         var collection = db.collection(collection);
-        //return collection.items;
         deferredList.resolve(collection.items);
         return deferredList.promise;
     },

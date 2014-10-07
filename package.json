@@ -35,7 +35,9 @@
     "string": "^1.9.0",
     "winston": "^0.7.3",
     "locallydb": "*",
-    "q": "^2.0.2"
+    "q": "^2.0.2",
+    "request": "*",
+    "chalk": "*"
   },
   "devDependencies": {
     "vows": "0.6.x"
