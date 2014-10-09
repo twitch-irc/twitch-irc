@@ -593,7 +593,7 @@ client.prototype.connect = function connect(callback) {
     var host = servers.getServer(serverType, preferredServer, preferredPort);
 
     var authenticate = function authenticate() {
-        var identity = self.options.identity;
+        var identity = self.options.identity || {};
         var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
         var password = identity.password || 'SCHMOOPIIE';
 
