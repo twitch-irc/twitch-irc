@@ -23,16 +23,19 @@
  */
 
 var messageStream = require('irc-message-stream');
-var createSocket = require('./socket');
-var events = require('events');
-var util = require('util');
-var servers = require('./servers');
-var data = require('./data');
-var s = require('string');
-var locallydb = require('locallydb');
-var db = new locallydb('./database');
-
-var lag = new Date();
+var createSocket  = require('./socket');
+var events        = require('events');
+var util          = require('util');
+var servers       = require('./servers');
+var data          = require('./data');
+var s             = require('string');
+var locallydb     = require('locallydb');
+var db            = new locallydb('./database');
+var Q             = require('q');
+var lag           = new Date();
+var chalk         = require('chalk');
+var request       = require('request');
+var pkg           = require('./package.json');
 
 /**
  * Represents a new IRC client.
@@ -52,6 +55,19 @@ var client = function client(options) {
     this.socket = null;
 
     this.stream.on('data', this._handleMessage.bind(this));
+
+    var checkUpdates = (typeof self.options.options.checkUpdates != 'undefined') ? self.options.options.checkUpdates : true;
+
+    if (checkUpdates) {
+        request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                if (JSON.parse(body).version > pkg.version) {
+                    console.log('[' + chalk.red('!') + '] There is a twitch-irc update available: '+chalk.bold.yellow(JSON.parse(body).version)+chalk.dim.gray(' (current: '+pkg.version+')'));
+                    console.log('[' + chalk.red('!') + '] Run '+chalk.blue('npm install')+' to update.');
+                }
+            }
+        });
+    }
 
     process.on('uncaughtException', function (err) {
         self.logger.crash(err.stack);
@@ -577,7 +593,7 @@ client.prototype.connect = function connect(callback) {
     var host = servers.getServer(serverType, preferredServer, preferredPort);
 
     var authenticate = function authenticate() {
-        var identity = self.options.identity;
+        var identity = self.options.identity || {};
         var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
         var password = identity.password || 'SCHMOOPIIE';
 
@@ -807,6 +823,13 @@ client.prototype.mods = function mods(channel) {
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mods');
 };
 
+var deferredGet     = Q.defer();
+var deferredInsert  = Q.defer();
+var deferredList    = Q.defer();
+var deferredUpdate  = Q.defer();
+var deferredWhere   = Q.defer();
+var deferredReplace = Q.defer();
+var deferredRemove  = Q.defer();
 client.prototype.db = {
     /**
      * Insert/add/push a list of elements.
@@ -818,7 +841,8 @@ client.prototype.db = {
         var collection = db.collection(collection);
         collection.insert(elements);
         collection.save();
-        return true;
+        deferredInsert.resolve(null);
+        return deferredInsert.promise;
     },
     /**
      * Retrieve elements.
@@ -828,7 +852,8 @@ client.prototype.db = {
      */
     where: function where(collection, query) {
         var collection = db.collection(collection);
-        return collection.where(query);
+        deferredWhere.resolve(collection.where(query));
+        return deferredWhere.promise;
     },
     /**
      * Retrieve by cid.
@@ -838,7 +863,12 @@ client.prototype.db = {
      */
     get: function get(collection, cid) {
         var collection = db.collection(collection);
-        return collection.get(cid);
+        if (collection.get(cid) === undefined) {
+            deferredGet.reject('Cannot retrieve the cid.');
+        } else {
+            deferredGet.resolve(collection.get(cid));
+        }
+        return deferredGet.promise;
     },
     /**
      * List all elements in the collection.
@@ -847,7 +877,8 @@ client.prototype.db = {
      */
     list: function list(collection) {
         var collection = db.collection(collection);
-        return collection.list;
+        deferredList.resolve(collection.items);
+        return deferredList.promise;
     },
     /**
      * Update an element, it will add un-existed key and replace existed.
@@ -858,9 +889,13 @@ client.prototype.db = {
      */
     update: function update(collection, cid, object) {
         var collection = db.collection(collection);
-        collection.update(cid, object);
-        collection.save();
-        return true;
+        if (collection.update(cid, object)) {
+            collection.save();
+            deferredUpdate.resolve(collection.get(cid));
+        } else {
+            deferredUpdate.reject('Cannot retrieve the cid.');
+        }
+        return deferredUpdate.promise;
     },
     /**
      * Replace the element with the same cid.
@@ -871,9 +906,13 @@ client.prototype.db = {
      */
     replace: function replace(collection, cid, object) {
         var collection = db.collection(collection);
-        collection.replace(cid, object);
-        collection.save();
-        return true;
+        if (collection.replace(cid, object)) {
+            collection.save();
+            deferredReplace.resolve(collection.get(cid));
+        } else {
+            deferredReplace.reject('Cannot retrieve the cid.');
+        }
+        return deferredReplace.promise;
     },
     /**
      * Delete an item by cid.
@@ -883,8 +922,13 @@ client.prototype.db = {
      */
     remove: function remove(collection, cid) {
         var collection = db.collection(collection);
-        collection.remove(cid);
-        collection.save();
+        if (collection.remove(cid)) {
+            collection.save();
+            deferredRemove.resolve(null);
+        } else {
+            deferredRemove.reject('Cannot retrieve the cid.');
+        }
+        return deferredRemove.promise;
         return true;
     }
 }
