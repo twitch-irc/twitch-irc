@@ -34,10 +34,10 @@
     "readable-stream": "^1.0.27-1",
     "string": "^1.9.0",
     "winston": "^0.7.3",
-    "locallydb": "*",
+    "locallydb": "^0.0.4",
     "q": "^2.0.2",
-    "request": "*",
-    "chalk": "*"
+    "request": "^2.45.0",
+    "chalk": "^0.5.1"
   },
   "devDependencies": {
     "vows": "0.6.x"
