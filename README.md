@@ -142,6 +142,10 @@ Create collections and interact with them like any database management system.
 
 Please review the [guidelines for contributing](https://github.com/Schmoopiie/twitch-irc/wiki/Contributing) to this repository.
 
+## Support
+
+You can contact me on Twitter [@Schmoopiie](https://twitter.com/Schmoopiie/) or [create an issue](https://github.com/Schmoopiie/twitch-irc/issues/new).
+
 ## License
 
 The MIT License (MIT)
