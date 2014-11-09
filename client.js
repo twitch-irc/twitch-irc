@@ -937,6 +937,27 @@ client.prototype.db = {
         return deferredRemove.promise;
         return true;
     }
-}
+};
+
+client.prototype.api = {
+    chatters: function chatters(channel, cb) {
+        request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                cb(false, JSON.parse(body));
+            } else {
+                cb(true, {});
+            }
+        });
+    },
+    badges: function chatters(channel, cb) {
+        request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                cb(false, JSON.parse(body));
+            } else {
+                cb(true, {});
+            }
+        });
+    }
+};
 
 module.exports = client;
