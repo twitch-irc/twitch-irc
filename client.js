@@ -940,6 +940,11 @@ client.prototype.db = {
 };
 
 client.prototype.api = {
+    /**
+     * List of all users on a channel.
+     *
+     * @params {string} channel
+     */
     chatters: function chatters(channel, cb) {
         request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
             if (!err && res.statusCode == 200) {
@@ -949,8 +954,28 @@ client.prototype.api = {
             }
         });
     },
-    badges: function chatters(channel, cb) {
+    /**
+     * List of all badges for a channel.
+     *
+     * @params {string} channel
+     */
+    badges: function badges(channel, cb) {
         request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                cb(false, JSON.parse(body));
+            } else {
+                cb(true, {});
+            }
+        });
+    },
+
+    /**
+     * List of all emoticons for a channel.
+     *
+     * @params {string} channel
+     */
+    emoticons: function emoticons(channel, cb) {
+        request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
             if (!err && res.statusCode == 200) {
                 cb(false, JSON.parse(body));
             } else {
