@@ -822,6 +822,16 @@ client.prototype.mods = function mods(channel) {
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mods');
 };
 
+/**
+ * Send a RAW message.
+ *
+ * @params {string} channel
+ * @params {string} message
+ */
+client.prototype.raw = function raw(message) {
+    this.socket.crlfWrite(message);
+};
+
 var deferredGet     = Q.defer();
 var deferredInsert  = Q.defer();
 var deferredList    = Q.defer();
