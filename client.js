@@ -968,7 +968,6 @@ client.prototype.api = {
             }
         });
     },
-
     /**
      * List of all emoticons for a channel.
      *
@@ -976,6 +975,20 @@ client.prototype.api = {
      */
     emoticons: function emoticons(channel, cb) {
         request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                cb(false, JSON.parse(body));
+            } else {
+                cb(true, {});
+            }
+        });
+    },
+    /**
+     * Returns a channel object.
+     *
+     * @params {string} channel
+     */
+    channels: function channels(channel, cb) {
+        request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
             if (!err && res.statusCode == 200) {
                 cb(false, JSON.parse(body));
             } else {
