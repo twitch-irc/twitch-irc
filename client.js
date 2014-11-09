@@ -30,7 +30,6 @@ var servers       = require('./servers');
 var data          = require('./data');
 var s             = require('string');
 var locallydb     = require('locallydb');
-var db            = new locallydb('./database');
 var Q             = require('q');
 var lag           = new Date();
 var chalk         = require('chalk');
@@ -838,6 +837,7 @@ client.prototype.db = {
      * @params {object} elements
      */
     insert: function insert(collection, elements) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         collection.insert(elements);
         collection.save();
@@ -851,6 +851,7 @@ client.prototype.db = {
      * @params {query} query
      */
     where: function where(collection, query) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         deferredWhere.resolve(collection.where(query));
         return deferredWhere.promise;
@@ -862,6 +863,7 @@ client.prototype.db = {
      * @params {integer} cid
      */
     get: function get(collection, cid) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         if (collection.get(cid) === undefined) {
             deferredGet.reject('Cannot retrieve the cid.');
@@ -876,6 +878,7 @@ client.prototype.db = {
      * @params {string} collection
      */
     list: function list(collection) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         deferredList.resolve(collection.items);
         return deferredList.promise;
@@ -888,6 +891,7 @@ client.prototype.db = {
      * @params {object} object
      */
     update: function update(collection, cid, object) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         if (collection.update(cid, object)) {
             collection.save();
@@ -905,6 +909,7 @@ client.prototype.db = {
      * @params {object} object
      */
     replace: function replace(collection, cid, object) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         if (collection.replace(cid, object)) {
             collection.save();
@@ -921,6 +926,7 @@ client.prototype.db = {
      * @params {integer} cid
      */
     remove: function remove(collection, cid) {
+        var db = new locallydb('./database');
         var collection = db.collection(collection);
         if (collection.remove(cid)) {
             collection.save();
