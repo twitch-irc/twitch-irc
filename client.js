@@ -31,6 +31,7 @@ var data          = require('./data');
 var s             = require('string');
 var locallydb     = require('locallydb');
 var Q             = require('q');
+var cronjob       = require('cron').CronJob;
 var lag           = new Date();
 var chalk         = require('chalk');
 var request       = require('request');
@@ -830,6 +831,19 @@ client.prototype.mods = function mods(channel) {
  */
 client.prototype.raw = function raw(message) {
     this.socket.crlfWrite(message);
+};
+
+/**
+ * Create a new cron job.
+ *
+ * @params {string} time
+ * @params {string} timezone
+ * @params {function} function
+ */
+client.prototype.cron = function cron(time, fn) {
+    new cronjob(time, function(){
+        fn();
+    }, null, true);
 };
 
 var deferredGet     = Q.defer();
