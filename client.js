@@ -61,8 +61,8 @@ var client = function client(options) {
         request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
             if (!err && res.statusCode == 200) {
                 if (JSON.parse(body).version > pkg.version) {
-                    console.log('[' + chalk.red('!') + '] There is a twitch-irc update available: '+chalk.bold.yellow(JSON.parse(body).version)+chalk.dim.gray(' (current: '+pkg.version+')'));
-                    console.log('[' + chalk.red('!') + '] Run '+chalk.blue('npm install')+' to update.');
+                    console.log(chalk.yellow('?')+' Update available for twitch-irc: ' + chalk.green.bold(JSON.parse(body).version) + chalk.dim(' (current: ' + pkg.version + ')'));
+                    console.log(chalk.yellow('?')+' Run ' + chalk.yellow.bold('npm install twitch-irc') +' to update. ');
                 }
             }
         });
