@@ -841,7 +841,7 @@ client.prototype.raw = function raw(message) {
  * @params {function} function
  */
 client.prototype.cron = function cron(time, fn) {
-    new cronjob(time, function(){
+    return new cronjob(time, function(){
         fn();
     }, null, true);
 };
