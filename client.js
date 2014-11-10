@@ -843,7 +843,7 @@ client.prototype.raw = function raw(message) {
 client.prototype.cron = function cron(time, fn) {
     return new cronjob(time, function(){
         fn();
-    }, null, true);
+    }, null, false);
 };
 
 var deferredGet     = Q.defer();
