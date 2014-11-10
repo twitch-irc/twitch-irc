@@ -1,3 +1,7 @@
+/**
+ * Documentation is not available as this is only in beta and it may change at any time.
+ */
+
 var irc = require('twitch-irc');
 
 var client = new irc.client({
