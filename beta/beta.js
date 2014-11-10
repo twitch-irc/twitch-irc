@@ -11,7 +11,7 @@ var client = new irc.client({
         logging: false,
         tc: 3
     },
-    channels: ['']
+    channels: []
 });
 
 client.connect();
