@@ -26,37 +26,28 @@ client.addListener('connected', function () {
 /**
  * Calling the Twitch API to get a list of chatters in a channel.
  */
-client.api.chatters('schmoopiie', function(err, response) {
-    if (!err) {
-        console.log(' ');
-        console.log('--- CHATTERS ---');
-        console.log(' ');
-        console.log(response);
-    }
+client.api.chatters('schmoopiie').then(function (response) {
+    console.log(response);
+}, function (err) {
+    console.log(err);
 });
 
 /**
  * Calling the Twitch API to get the badges of a channel.
  */
-client.api.badges('schmoopiie', function(err, response) {
-    if (!err) {
-        console.log(' ');
-        console.log('--- BADGES ---');
-        console.log(' ');
-        console.log(response);
-    }
+client.api.badges('schmoopiie').then(function (response) {
+    console.log(response);
+}, function (err) {
+    console.log(err);
 });
 
 /**
  * Calling the Twitch API to get a channel object.
  */
-client.api.channels('schmoopiie', function(err, response) {
-    if (!err) {
-        console.log(' ');
-        console.log('--- CHANNEL OBJECT ---');
-        console.log(' ');
-        console.log(response);
-    }
+client.api.channels('schmoopiie').then(function (response) {
+    console.log(response);
+}, function (err) {
+    console.log(err);
 });
 
 /**

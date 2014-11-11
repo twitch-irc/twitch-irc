@@ -31,6 +31,7 @@ var data          = require('./data');
 var s             = require('string');
 var locallydb     = require('locallydb');
 var Q             = require('q');
+var promise       = require("promise");
 var cronjob       = require('cron').CronJob;
 var lag           = new Date();
 var chalk         = require('chalk');
@@ -963,6 +964,7 @@ client.prototype.db = {
     }
 };
 
+var deferredChannels  = Q.defer();
 client.prototype.api = {
     /**
      * List of all users on a channel.
@@ -970,12 +972,17 @@ client.prototype.api = {
      * @params {string} channel
      */
     chatters: function chatters(channel, cb) {
-        request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
-            if (!err && res.statusCode == 200) {
-                cb(false, JSON.parse(body));
-            } else {
-                cb(true, {});
-            }
+        return new promise(function (resolve, reject) {
+            request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
+                if (err) {
+                    return reject(err);
+                } else if (res.statusCode !== 200) {
+                    err = new Error("Unexpected status code: " + res.statusCode);
+                    err.res = res;
+                    return reject(err);
+                }
+                resolve(body);
+            });
         });
     },
     /**
@@ -984,12 +991,17 @@ client.prototype.api = {
      * @params {string} channel
      */
     badges: function badges(channel, cb) {
-        request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
-            if (!err && res.statusCode == 200) {
-                cb(false, JSON.parse(body));
-            } else {
-                cb(true, {});
-            }
+        return new promise(function (resolve, reject) {
+            request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
+                if (err) {
+                    return reject(err);
+                } else if (res.statusCode !== 200) {
+                    err = new Error("Unexpected status code: " + res.statusCode);
+                    err.res = res;
+                    return reject(err);
+                }
+                resolve(body);
+            });
         });
     },
     /**
@@ -998,12 +1010,17 @@ client.prototype.api = {
      * @params {string} channel
      */
     emoticons: function emoticons(channel, cb) {
-        request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
-            if (!err && res.statusCode == 200) {
-                cb(false, JSON.parse(body));
-            } else {
-                cb(true, {});
-            }
+        return new promise(function (resolve, reject) {
+            request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
+                if (err) {
+                    return reject(err);
+                } else if (res.statusCode !== 200) {
+                    err = new Error("Unexpected status code: " + res.statusCode);
+                    err.res = res;
+                    return reject(err);
+                }
+                resolve(body);
+            });
         });
     },
     /**
@@ -1011,13 +1028,18 @@ client.prototype.api = {
      *
      * @params {string} channel
      */
-    channels: function channels(channel, cb) {
-        request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
-            if (!err && res.statusCode == 200) {
-                cb(false, JSON.parse(body));
-            } else {
-                cb(true, {});
-            }
+    channels: function channels(channel) {
+        return new promise(function (resolve, reject) {
+            request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
+                if (err) {
+                    return reject(err);
+                } else if (res.statusCode !== 200) {
+                    err = new Error("Unexpected status code: " + res.statusCode);
+                    err.res = res;
+                    return reject(err);
+                }
+                resolve(body);
+            });
         });
     }
 };
