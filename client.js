@@ -48,6 +48,10 @@ var client = function client(options) {
 
     events.EventEmitter.call(this);
 
+    if (typeof(options.options === 'undefined')) {
+        options.options = {};
+    }
+
     this.logger = require('./logger')(options);
 
     this.options = options;
