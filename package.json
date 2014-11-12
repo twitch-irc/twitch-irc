@@ -39,7 +39,15 @@
     "request": "^2.45.0",
     "chalk": "^0.5.1",
     "cron": "^1.0.5",
-    "promise": "^6.0.1"
+    "promise": "^6.0.1",
+    "express": "latest",
+    "body-parser": "latest",
+    "method-override": "latest",
+    "passport": "latest",
+    "passport-twitch": "latest",
+    "express-session": "latest",
+    "ejs": "latest",
+    "externalip": "latest"
   },
   "devDependencies": {
     "vows": "0.6.x"

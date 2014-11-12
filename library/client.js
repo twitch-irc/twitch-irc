@@ -50,6 +50,7 @@ var client = function client(options) {
     Events.EventEmitter.call(this);
 
     this.logger = require('./logger')(options);
+    this.oauth = require('./oauth')(options);
     this.options = options || {};
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
