@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-var logger = require('winston');
-var mkdirp = require('mkdirp');
+var Logger = require('winston');
+var Directory = require('mkdirp');
 
 /**
  * Customizing the logger for a better understanding of what's going on.
@@ -31,38 +31,38 @@ var mkdirp = require('mkdirp');
  * @returns {exports}
  */
 module.exports = function(config) {
-    var options = config.options || {};
+	var options = config.options || {};
 
-    var debug = options.debug || true;
-    var logging = options.logging || false;
+	var debug = options.debug || true;
+	var logging = options.logging || false;
 	
-	logger.setLevels({
+	Logger.setLevels({
 		raw:0,
 		event: 1,
 		error:2,
 		crash: 3
 	});
 
-	logger.addColors({
+	Logger.addColors({
 		raw: 'cyan',
 		event: 'green',
 		error: 'red',
 		crash: 'red'
 	});
 
-	logger.remove(logger.transports.Console);
+	Logger.remove(Logger.transports.Console);
 	
-	if (debug) { logger.add(logger.transports.Console, { level: 'raw', colorize:true }); }
+	if (debug) { Logger.add(Logger.transports.Console, { level: 'raw', colorize:true }); }
 	
 	if (logging) {
-		mkdirp('./logs', function (err) {
-		    if (err) { logger.error(err); }
+        Directory('./logs', function (err) {
+		    if (err) { Logger.error(err); }
 		    else {
-		    	logger.add(logger.transports.File, { level: 'raw', filename: './logs/status.log' });
-		    	logger.handleExceptions(new logger.transports.File({ filename: './logs/exceptions.log' }))
+		    	Logger.add(Logger.transports.File, { level: 'raw', filename: './logs/status.log' });
+		    	Logger.handleExceptions(new Logger.transports.File({ filename: './logs/exceptions.log' }))
 		    }
 		});
 	}
 	
-	return logger;
+	return Logger;
 };
