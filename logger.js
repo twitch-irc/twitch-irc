@@ -31,8 +31,10 @@ var mkdirp = require('mkdirp');
  * @returns {exports}
  */
 module.exports = function(config) {
-	var debug = config.options.debug || false;
-	var logging = config.options.logging || false;
+    var options = config.options || {};
+
+    var debug = options.debug || true;
+    var logging = options.logging || false;
 	
 	logger.setLevels({
 		raw:0,

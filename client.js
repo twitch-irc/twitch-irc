@@ -22,21 +22,21 @@
  * THE SOFTWARE.
  */
 
-var messageStream = require('irc-message-stream');
-var createSocket  = require('./socket');
-var events        = require('events');
-var util          = require('util');
-var servers       = require('./servers');
-var data          = require('./data');
-var s             = require('string');
-var locallydb     = require('locallydb');
-var Q             = require('q');
-var promise       = require("promise");
-var cronjob       = require('cron').CronJob;
-var lag           = new Date();
-var chalk         = require('chalk');
-var request       = require('request');
-var pkg           = require('./package.json');
+var Chalk   = require('chalk');
+var Cron    = require('cron').CronJob;
+var Data    = require('./data');
+var Events  = require('events');
+var Latency = new Date();
+var Locally = require('locallydb');
+var Package = require('./package.json');
+var Promise = require("promise");
+var Q       = require('q');
+var Request = require('request');
+var Servers = require('./servers');
+var Socket  = require('./socket');
+var Stream  = require('irc-message-stream');
+var String  = require('string');
+var Util    = require('util');
 
 /**
  * Represents a new IRC client.
@@ -47,24 +47,22 @@ var pkg           = require('./package.json');
 var client = function client(options) {
     var self = this;
 
-    events.EventEmitter.call(this);
+    Events.EventEmitter.call(this);
 
     this.logger = require('./logger')(options);
 
-    this.options = options;
-    this.stream = messageStream();
+    this.options = options || {};
+    this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
 
-    this.stream.on('data', this._handleMessage.bind(this));
-
-    var checkUpdates = (typeof self.options.options.checkUpdates != 'undefined') ? self.options.options.checkUpdates : true;
+    var checkUpdates = (typeof this.options.checkUpdates != 'undefined') ? this.options.checkUpdates : true;
 
     if (checkUpdates) {
-        request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
+        Request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
             if (!err && res.statusCode == 200) {
-                if (JSON.parse(body).version > pkg.version) {
-                    console.log(chalk.yellow('?')+' Update available for twitch-irc: ' + chalk.green.bold(JSON.parse(body).version) + chalk.dim(' (current: ' + pkg.version + ')'));
-                    console.log(chalk.yellow('?')+' Run ' + chalk.yellow.bold('npm install twitch-irc') +' to update. ');
+                if (JSON.parse(body).version > Package.version) {
+                    console.log(Chalk.yellow('?')+' Update available for twitch-irc: ' + Chalk.green.bold(JSON.parse(body).version) + Chalk.dim(' (current: ' + Package.version + ')'));
+                    console.log(Chalk.yellow('?')+' Run ' + Chalk.yellow.bold('npm install twitch-irc') +' to update. ');
                 }
             }
         });
@@ -77,7 +75,7 @@ var client = function client(options) {
 };
 
 // Inherit client from EventEmitter.
-util.inherits(client, events.EventEmitter);
+Util.inherits(client, Events.EventEmitter);
 
 // Clean an array.
 Array.prototype.clean = function(deleteValue) {
@@ -150,7 +148,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @event pong
              */
             self.logger.event('pong');
-            self.emit('pong', (((new Date()-lag)/1000)%60));
+            self.emit('pong', (((new Date()-Latency)/1000)%60));
             break;
 
         case '372':
@@ -162,11 +160,13 @@ client.prototype._handleMessage = function _handleMessage(message) {
             self.logger.event('connected');
             self.emit('connected', self.socket.remoteAddress, self.socket.remotePort);
 
-            var twitchClient = (typeof self.options.options.tc != 'undefined') ? self.options.options.tc : 3;
+            var options = self.options.options || {};
+            var twitchClient = options.tc || 3;
             self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
 
             var timer = 0;
-            self.options.channels.forEach(function(channel) {
+            var channels = self.options.channels || [];
+            channels.forEach(function(channel) {
                 setTimeout(function(){self.join(channel);}, timer);
                 timer = timer+3000;
             });
@@ -257,7 +257,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('subscriber', message.params[0], false);
                         break;
 
-                    case (s(message.params[1]).contains('This room is now in slow mode.')):
+                    case (String(message.params[1]).contains('This room is now in slow mode.')):
                         /**
                          * Room is now in slow mode.
                          *
@@ -308,7 +308,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('r9kbeta', message.params[0], false);
                         break;
 
-                    case (s(message.params[0]).contains('is now hosting you for')):
+                    case (String(message.params[0]).contains('is now hosting you for')):
                         /**
                          * Room is now hosted by another user.
                          *
@@ -322,7 +322,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('hosted', message.params[0], parts[0], parts[6]);
                         break;
 
-                    case (s(message.params[1]).contains('The moderators of this room are:')):
+                    case (String(message.params[1]).contains('The moderators of this room are:')):
                         /**
                          * Received mods list on a channel.
                          * The client needs to send the /mods command to a channel to receive this message.
@@ -354,7 +354,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('limitation', {message: message.params[1], code: code});
                         break;
 
-                    case (message.params[1] === 'You don\'t have permission to do this.' || s(message.params[1]).contains('Only the owner of this channel can use')) ||
+                    case (message.params[1] === 'You don\'t have permission to do this.' || String(message.params[1]).contains('Only the owner of this channel can use')) ||
                     message.params[1] === 'You don\'t have permission to timeout people in this room.':
                         /**
                          * Permission error by Twitch.
@@ -366,7 +366,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.logger.event('permission');
                         var code;
                         if (message.params[1] === 'You don\'t have permission to do this.') { code = 'NO_PERMISSION'; }
-                        else if (s(message.params[1]).contains('Only the owner of this channel can use')) { code = 'OWNER_ONLY'; }
+                        else if (String(message.params[1]).contains('Only the owner of this channel can use')) { code = 'OWNER_ONLY'; }
                         else if (message.params[1] === 'You don\'t have permission to timeout people in this room.') { code = 'NO_PERMISSION'; }
                         self.emit('permission', {message: message.params[1], code: code});
                         break;
@@ -382,8 +382,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} value
                          */
                         self.emit('specialuser', username, value);
-                        data.createTempUserData(username);
-                        data.tempUserData[username].special.push(value);
+                        Data.createTempUserData(username);
+                        Data.tempUserData[username].special.push(value);
                         break;
 
                     case (message.params[1].split(' ')[0] === 'USERCOLOR'):
@@ -397,8 +397,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} value
                          */
                         self.emit('usercolor', username, value);
-                        data.createTempUserData(username);
-                        data.tempUserData[username].color = value;
+                        Data.createTempUserData(username);
+                        Data.tempUserData[username].color = value;
                         break;
 
                     case (message.params[1].split(' ')[0] === 'EMOTESET'):
@@ -412,8 +412,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} value
                          */
                         self.emit('emoteset', username, value);
-                        data.createTempUserData(username);
-                        data.tempUserData[username].emote = value;
+                        Data.createTempUserData(username);
+                        Data.tempUserData[username].emote = value;
                         break;
 
                     case (message.params[1].split(' ')[0] === 'CLEARCHAT'):
@@ -532,7 +532,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.emit('twitchnotify', message.params[0], message.params[1]);
 
                 switch(true) {
-                    case (s(message.params[1]).contains('just subscribed!')):
+                    case (String(message.params[1]).containString('just subscribed!')):
                         /**
                          * Someone has subscribed to a channel.
                          *
@@ -565,11 +565,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             else {
                 var username = message.parseHostmaskFromPrefix().nickname.toLowerCase();
-                data.createChannelUserData(message.params[0], username, function(done) {
-                    if (s(message.params[1]).startsWith('\u0001ACTION')) {
-                        self.emit('action', message.params[0], data.channelUserData[message.params[0]][username], s(message.params[1]).between('\u0001ACTION ', '\u0001'));
+                Data.createChannelUserData(message.params[0], username, function(done) {
+                    if (String(message.params[1]).startsWith('\u0001ACTION')) {
+                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001'));
                     } else {
-                        self.emit('chat', message.params[0], data.channelUserData[message.params[0]][username], message.params[1]);
+                        self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                     }
                 });
             }
@@ -591,7 +591,7 @@ client.prototype.connect = function connect(callback) {
     var preferredServer = connection.preferredServer || null;
     var preferredPort = connection.preferredPort || null;
     var serverType = connection.serverType || 'chat';
-    var host = servers.getServer(serverType, preferredServer, preferredPort);
+    var host = Servers.getServer(serverType, preferredServer, preferredPort);
 
     var authenticate = function authenticate() {
         var identity = self.options.identity || {};
@@ -605,7 +605,7 @@ client.prototype.connect = function connect(callback) {
         self.socket.crlfWrite('NICK %s', nickname);
         self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
     };
-    self.socket = createSocket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
+    self.socket = Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
 
     self.socket.pipe(self.stream);
 };
@@ -616,7 +616,7 @@ client.prototype.connect = function connect(callback) {
  * @params {string} channel
  */
 client.prototype.join = function join(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('JOIN '+channel.toLowerCase());
 };
 
@@ -626,7 +626,7 @@ client.prototype.join = function join(channel) {
  * @params {string} channel
  */
 client.prototype.part = function part(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PART '+channel.toLowerCase());
 };
 
@@ -635,7 +635,7 @@ client.prototype.part = function part(channel) {
  */
 client.prototype.ping = function ping() {
     this.socket.crlfWrite('PING');
-    lag = new Date();
+    Latency = new Date();
 };
 
 /**
@@ -645,7 +645,7 @@ client.prototype.ping = function ping() {
  * @params {string} message
  */
 client.prototype.say = function say(channel, message) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :'+message);
 };
 
@@ -656,7 +656,7 @@ client.prototype.say = function say(channel, message) {
  * @params {string} target
  */
 client.prototype.host = function host(channel, target) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.host '+target);
 };
 
@@ -666,7 +666,7 @@ client.prototype.host = function host(channel, target) {
  * @params {string} channel
  */
 client.prototype.unhost = function unhost(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unhost');
 };
 
@@ -678,7 +678,7 @@ client.prototype.unhost = function unhost(channel) {
  * @params {integer} seconds
  */
 client.prototype.timeout = function timeout(channel, username, seconds) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.timeout '+username+' '+seconds);
 };
@@ -690,7 +690,7 @@ client.prototype.timeout = function timeout(channel, username, seconds) {
  * @params {string} username
  */
 client.prototype.ban = function ban(channel, username) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.ban '+username);
 };
 
@@ -701,7 +701,7 @@ client.prototype.ban = function ban(channel, username) {
  * @params {string} username
  */
 client.prototype.unban = function unban(channel, username) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unban '+username);
 };
 
@@ -712,7 +712,7 @@ client.prototype.unban = function unban(channel, username) {
  * @params {integer} seconds
  */
 client.prototype.slow = function slow(channel, seconds) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.slow '+seconds);
 };
@@ -723,7 +723,7 @@ client.prototype.slow = function slow(channel, seconds) {
  * @params {string} channel
  */
 client.prototype.slowoff = function slowoff(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.slowoff');
 };
 
@@ -732,8 +732,8 @@ client.prototype.slowoff = function slowoff(channel) {
  *
  * @params {string} channel
  */
-client.prototype.subscribers = function subscribers(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+client.prototype.subscribers = function subscriberString(channel) {
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.subscribers');
 };
 
@@ -743,7 +743,7 @@ client.prototype.subscribers = function subscribers(channel) {
  * @params {string} channel
  */
 client.prototype.subscribersoff = function subscribersoff(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.subscribersoff');
 };
 
@@ -753,7 +753,7 @@ client.prototype.subscribersoff = function subscribersoff(channel) {
  * @params {string} channel
  */
 client.prototype.clear = function clear(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.clear');
 };
 
@@ -763,7 +763,7 @@ client.prototype.clear = function clear(channel) {
  * @params {string} channel
  */
 client.prototype.r9kbeta = function r9kbeta(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.r9kbeta');
 };
 
@@ -773,7 +773,7 @@ client.prototype.r9kbeta = function r9kbeta(channel) {
  * @params {string} channel
  */
 client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.r9kbetaoff');
 };
 
@@ -784,7 +784,7 @@ client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
  * @params {string} username
  */
 client.prototype.mod = function mod(channel, username) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mod '+username);
 };
 
@@ -795,7 +795,7 @@ client.prototype.mod = function mod(channel, username) {
  * @params {string} username
  */
 client.prototype.unmod = function mod(channel, username) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unmod '+username);
 };
 
@@ -806,7 +806,7 @@ client.prototype.unmod = function mod(channel, username) {
  * @params {integer} seconds
  */
 client.prototype.commercial = function commercial(channel, seconds) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 30;
     var availableLengths = [30, 60, 90, 120, 150, 180];
     if (availableLengths.indexOf(seconds) === -1) { seconds = 30; }
@@ -819,8 +819,8 @@ client.prototype.commercial = function commercial(channel, seconds) {
  *
  * @params {string} channel
  */
-client.prototype.mods = function mods(channel) {
-    if (!s(channel).startsWith('#')) { channel = '#'+channel; }
+client.prototype.mods = function modString(channel) {
+    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mods');
 };
 
@@ -842,7 +842,7 @@ client.prototype.raw = function raw(message) {
  * @params {function} function
  */
 client.prototype.cron = function cron(time, fn) {
-    return new cronjob(time, function(){
+    return new Cron(time, function(){
         fn();
     }, null, false);
 };
@@ -862,7 +862,7 @@ client.prototype.db = {
      * @params {object} elements
      */
     insert: function insert(collection, elements) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         collection.insert(elements);
         collection.save();
@@ -876,7 +876,7 @@ client.prototype.db = {
      * @params {query} query
      */
     where: function where(collection, query) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         deferredWhere.resolve(collection.where(query));
         return deferredWhere.promise;
@@ -888,7 +888,7 @@ client.prototype.db = {
      * @params {integer} cid
      */
     get: function get(collection, cid) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         if (collection.get(cid) === undefined) {
             deferredGet.reject('Cannot retrieve the cid.');
@@ -903,7 +903,7 @@ client.prototype.db = {
      * @params {string} collection
      */
     list: function list(collection) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         deferredList.resolve(collection.items);
         return deferredList.promise;
@@ -916,7 +916,7 @@ client.prototype.db = {
      * @params {object} object
      */
     update: function update(collection, cid, object) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         if (collection.update(cid, object)) {
             collection.save();
@@ -934,7 +934,7 @@ client.prototype.db = {
      * @params {object} object
      */
     replace: function replace(collection, cid, object) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         if (collection.replace(cid, object)) {
             collection.save();
@@ -951,7 +951,7 @@ client.prototype.db = {
      * @params {integer} cid
      */
     remove: function remove(collection, cid) {
-        var db = new locallydb('./database');
+        var db = new Locally('./database');
         var collection = db.collection(collection);
         if (collection.remove(cid)) {
             collection.save();
@@ -964,7 +964,6 @@ client.prototype.db = {
     }
 };
 
-var deferredChannels  = Q.defer();
 client.prototype.api = {
     /**
      * List of all users on a channel.
@@ -972,13 +971,12 @@ client.prototype.api = {
      * @params {string} channel
      */
     chatters: function chatters(channel, cb) {
-        return new promise(function (resolve, reject) {
-            request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
+        return new Promise(function (resolve, reject) {
+            Request('http://tmi.twitch.tv/group/user/'+channel.toLowerCase()+'/chatters', function (err, res, body) {
                 if (err) {
                     return reject(err);
                 } else if (res.statusCode !== 200) {
                     err = new Error("Unexpected status code: " + res.statusCode);
-                    err.res = res;
                     return reject(err);
                 }
                 resolve(body);
@@ -991,13 +989,12 @@ client.prototype.api = {
      * @params {string} channel
      */
     badges: function badges(channel, cb) {
-        return new promise(function (resolve, reject) {
-            request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
+        return new Promise(function (resolve, reject) {
+            Request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/badges', function (err, res, body) {
                 if (err) {
                     return reject(err);
                 } else if (res.statusCode !== 200) {
                     err = new Error("Unexpected status code: " + res.statusCode);
-                    err.res = res;
                     return reject(err);
                 }
                 resolve(body);
@@ -1010,13 +1007,12 @@ client.prototype.api = {
      * @params {string} channel
      */
     emoticons: function emoticons(channel, cb) {
-        return new promise(function (resolve, reject) {
-            request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
+        return new Promise(function (resolve, reject) {
+            Request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
                 if (err) {
                     return reject(err);
                 } else if (res.statusCode !== 200) {
                     err = new Error("Unexpected status code: " + res.statusCode);
-                    err.res = res;
                     return reject(err);
                 }
                 resolve(body);
@@ -1029,13 +1025,12 @@ client.prototype.api = {
      * @params {string} channel
      */
     channels: function channels(channel) {
-        return new promise(function (resolve, reject) {
-            request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
+        return new Promise(function (resolve, reject) {
+            Request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
                 if (err) {
                     return reject(err);
                 } else if (res.statusCode !== 200) {
                     err = new Error("Unexpected status code: " + res.statusCode);
-                    err.res = res;
                     return reject(err);
                 }
                 resolve(body);
