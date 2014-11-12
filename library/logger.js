@@ -33,7 +33,7 @@ var Directory = require('mkdirp');
 module.exports = function(config) {
 	var options = config.options || {};
 
-	var debug = options.debug || true;
+	var debug = options.debug || false;
 	var logging = options.logging || false;
 	
 	Logger.setLevels({
