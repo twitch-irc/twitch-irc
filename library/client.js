@@ -90,7 +90,7 @@ Array.prototype.clean = function(deleteValue) {
 
 /**
  * Handle all IRC messages.
- * Documentation: https://github.com/Schmoopiie/generator-twitch-irc/blob/master/EVENTS.md
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Events
  *
  * @fires client#ping
  * @fires client#pong
