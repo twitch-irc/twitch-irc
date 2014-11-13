@@ -22,22 +22,22 @@
  * THE SOFTWARE.
  */
 
-var Chalk   = require('chalk');
-var Cron    = require('cron').CronJob;
-var Data    = require('./data');
-var Events  = require('events');
-var Latency = new Date();
-var Locally = require('locallydb');
-var Package = require('./../package.json');
-var Promise = require("promise");
-var Q       = require('q');
-var Request = require('request');
-var Servers = require('./servers');
-var Socket  = require('./socket');
-var Stream  = require('irc-message-stream');
-var String  = require('string');
-var Util    = require('util');
-
+var Chalk    = require('chalk');
+var Cron     = require('cron').CronJob;
+var Data     = require('./data');
+var Events   = require('events');
+var Latency  = new Date();
+var Locally  = require('locallydb');
+var Package  = require('./../package.json');
+var Promise  = require("promise");
+var Q        = require('q');
+var Request  = require('request');
+var Servers  = require('./servers');
+var Socket   = require('./socket');
+var Stream   = require('irc-message-stream');
+var String   = require('string');
+var Util     = require('util');
+var Database = null;
 /**
  * Represents a new IRC client.
  *
@@ -863,8 +863,10 @@ client.prototype.db = {
      * @params {object} elements
      */
     insert: function insert(collection, elements) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         collection.insert(elements);
         collection.save();
         deferredInsert.resolve(null);
@@ -877,8 +879,10 @@ client.prototype.db = {
      * @params {query} query
      */
     where: function where(collection, query) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         deferredWhere.resolve(collection.where(query));
         return deferredWhere.promise;
     },
@@ -889,8 +893,10 @@ client.prototype.db = {
      * @params {integer} cid
      */
     get: function get(collection, cid) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         if (collection.get(cid) === undefined) {
             deferredGet.reject('Cannot retrieve the cid.');
         } else {
@@ -904,8 +910,10 @@ client.prototype.db = {
      * @params {string} collection
      */
     list: function list(collection) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         deferredList.resolve(collection.items);
         return deferredList.promise;
     },
@@ -917,8 +925,10 @@ client.prototype.db = {
      * @params {object} object
      */
     update: function update(collection, cid, object) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         if (collection.update(cid, object)) {
             collection.save();
             deferredUpdate.resolve(collection.get(cid));
@@ -935,8 +945,10 @@ client.prototype.db = {
      * @params {object} object
      */
     replace: function replace(collection, cid, object) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         if (collection.replace(cid, object)) {
             collection.save();
             deferredReplace.resolve(collection.get(cid));
@@ -952,8 +964,10 @@ client.prototype.db = {
      * @params {integer} cid
      */
     remove: function remove(collection, cid) {
-        var db = new Locally('./database');
-        var collection = db.collection(collection);
+        if (Database === null) {
+            Database = new Locally('./database');
+        }
+        var collection = Database.collection(collection);
         if (collection.remove(cid)) {
             collection.save();
             deferredRemove.resolve(null);
