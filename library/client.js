@@ -1036,7 +1036,7 @@ client.prototype.api = {
     }
 };
 
-function apiCall(channel, url, method, expectJSON) {
+function apiCall(channel, url, method, data, expectJSON) {
     return new Promise(function (resolve, reject) {
         if (Database === null) {
             Database = new Locally('./database');
@@ -1053,6 +1053,9 @@ function apiCall(channel, url, method, expectJSON) {
                 json: true,
                 method: method
             };
+            if (data != null) {
+                options.body = data;
+            }
 
             Request(options, function (error, response, body) {
                 if (!error && (response.statusCode == 200 || response.statusCode == 204)) {
@@ -1071,26 +1074,90 @@ function apiCall(channel, url, method, expectJSON) {
     });
 }
 
+function apiAnonymousCall(url, expectJSON) {
+    return new Promise(function (resolve, reject) {
+        Request(url, function (err, res, body) {
+            if (!err && (res.statusCode == 200 || res.statusCode == 204)) {
+                if (expectJSON) {
+                    resolve(body);
+                } else {
+                    resolve(res.statusCode);
+                }
+            } else {
+                reject(res.statusCode);
+            }
+        });
+    });
+}
+
 // https://github.com/justintv/Twitch-API/blob/master/v3_resources/blocks.md
 client.prototype.api.blocks = {
     get: function get(channel, limit, offset) {
         channel = channel.replace('#', '').toLowerCase();
         limit = typeof limit !== 'undefined' ? limit : 25;
         offset = typeof offset !== 'undefined' ? offset : 0;
-        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks?limit='+limit+'&offset='+offset, 'get', true);
+        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks?limit='+limit+'&offset='+offset, 'get', null, true);
     },
     put: function put(channel, target) {
         channel = channel.replace('#', '').toLowerCase();
-        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target, 'put', true);
+        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target, 'put', null, true);
     },
     delete: function remove(channel, target) {
         channel = channel.replace('#', '').toLowerCase();
-        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target, 'delete', false);
+        return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target, 'delete', null, false);
     }
 };
 
+// https://github.com/justintv/Twitch-API/blob/master/v3_resources/channels.md
 client.prototype.api.channels = {
-
+    get: {
+        channel: function channel(channel) {
+            channel = channel.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/channel', 'get', null, true);
+        },
+        videos: function videos(channel, limit, offset) {
+            channel = channel.replace('#', '').toLowerCase();
+            limit = typeof limit !== 'undefined' ? limit : 10;
+            offset = typeof offset !== 'undefined' ? offset : 0;
+            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/videos?limit='+limit+'&offset='+offset, true);
+        },
+        follows: function follows(channel, limit, offset) {
+            channel = channel.replace('#', '').toLowerCase();
+            limit = typeof limit !== 'undefined' ? limit : 25;
+            offset = typeof offset !== 'undefined' ? offset : 0;
+            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/follows?limit='+limit+'&offset='+offset, true);
+        },
+        editors: function editors(channel) {
+            channel = channel.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/channels/'+channel+'/editors', 'get', null, true);
+        },
+        teams: function teams(channel) {
+            channel = channel.replace('#', '').toLowerCase();
+            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/teams', true);
+        }
+    },
+    put: {
+        channel: function channel(channel, data) {
+            channel = channel.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/channels/'+channel, 'put', data, true);
+        }
+    },
+    delete: {
+        streamkey: function streamkey(channel) {
+            channel = channel.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/channels/'+channel+'/stream_key', 'delete', null, false);
+        }
+    },
+    post: {
+        commercial: function commercial(channel, length) {
+            channel = channel.replace('#', '').toLowerCase();
+            length = typeof length !== 'undefined' ? length : 30;
+            var data = {
+                length: length
+            }
+            return apiCall(channel, 'https://api.twitch.tv/kraken/channels/'+channel+'/commercial', 'post', data, false);
+        }
+    }
 };
 
 client.prototype.api.chat = {
