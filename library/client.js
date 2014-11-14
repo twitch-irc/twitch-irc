@@ -1143,7 +1143,7 @@ client.prototype.api.channels = {
 };
 
 client.prototype.api.chat = {
-    get: function get(channel) {
+    chat: function chat(channel) {
         channel = channel.replace('#', '').toLowerCase();
         return apiAnonymousCall('https://api.twitch.tv/kraken/chat/'+channel, true);
     },
@@ -1154,7 +1154,42 @@ client.prototype.api.chat = {
 };
 
 client.prototype.api.follows = {
-
+    get: {
+        followers: function followers(channel, limit, offset, direction) {
+            channel = channel.replace('#', '').toLowerCase();
+            limit = typeof limit !== 'undefined' ? limit : 10;
+            offset = typeof offset !== 'undefined' ? offset : 0;
+            direction = typeof direction !== 'undefined' ? direction : 'DESC';
+            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/' + channel + '/follows?direction=' + direction + '&limit=' + limit + '&offset=' + offset, true);
+        },
+        follows: function follows(channel, limit, offset, direction, sortby) {
+            channel = channel.replace('#', '').toLowerCase();
+            limit = typeof limit !== 'undefined' ? limit : 10;
+            offset = typeof offset !== 'undefined' ? offset : 0;
+            direction = typeof direction !== 'undefined' ? direction : 'DESC';
+            sortby = typeof sortby !== 'undefined' ? sortby : 'created_at';
+            return apiAnonymousCall('https://api.twitch.tv/kraken/users/' + channel + '/follows/channels?direction=' + direction + '&sortby=' + sortby + '&limit=' + limit + '&offset=' + offset, true);
+        },
+        following: function following(channel, target) {
+            channel = channel.replace('#', '').toLowerCase();
+            target = target.replace('#', '').toLowerCase();
+            return apiAnonymousCall('https://api.twitch.tv/kraken/users/' + channel + '/follows/channels/' + target, true);
+        }
+    },
+    put: {
+        follows: function follows(channel, target) {
+            channel = channel.replace('#', '').toLowerCase();
+            target = target.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/follows/channels/'+target, 'put', null, true);
+        }
+    },
+    delete: {
+        follows: function follows(channel, target) {
+            channel = channel.replace('#', '').toLowerCase();
+            target = target.replace('#', '').toLowerCase();
+            return apiCall(channel, 'https://api.twitch.tv/kraken/users/'+channel+'/follows/channels/'+target, 'delete', null, false);
+        }
+    }
 };
 
 client.prototype.api.games = {
