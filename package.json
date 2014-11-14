@@ -46,8 +46,7 @@
     "passport": "latest",
     "passport-twitch": "latest",
     "express-session": "latest",
-    "ejs": "latest",
-    "externalip": "latest"
+    "ejs": "latest"
   },
   "devDependencies": {
     "vows": "0.6.x"

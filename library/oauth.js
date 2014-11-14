@@ -23,6 +23,7 @@
  */
 
 var Chalk    = require('chalk');
+var Database = null;
 var Express  = require('express');
 var Locally  = require('locallydb');
 var Method   = require('method-override');
@@ -77,9 +78,15 @@ module.exports = function(config) {
                 },
                 function (accessToken, refreshToken, profile, done) {
                     process.nextTick(function () {
-                        var db = new Locally('./database');
-                        var collection = db.collection('tokens');
-                        collection.insert({channel: profile.username.toLowerCase(), token: accessToken});
+                        if (Database === null) {
+                            Database = new Locally('./database');
+                        }
+                        var collection = Database.collection('tokens');
+                        if (collection.where({channel: profile.username.toLowerCase()}).length >= 1) {
+                            collection.update(collection.where({channel: profile.username.toLowerCase()})[0].cid, {channel: profile.username.toLowerCase(), token: accessToken});
+                        } else {
+                            collection.insert({channel: profile.username.toLowerCase(), token: accessToken});
+                        }
                         collection.save();
                         return done(null, profile);
                     });
