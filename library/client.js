@@ -1142,6 +1142,7 @@ client.prototype.api.channels = {
     }
 };
 
+// https://github.com/justintv/Twitch-API/blob/master/v3_resources/chat.md
 client.prototype.api.chat = {
     chat: function chat(channel) {
         channel = channel.replace('#', '').toLowerCase();
@@ -1153,6 +1154,7 @@ client.prototype.api.chat = {
     }
 };
 
+// https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md
 client.prototype.api.follows = {
     get: {
         followers: function followers(channel, limit, offset, direction) {
