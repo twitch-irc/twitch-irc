@@ -1015,24 +1015,6 @@ client.prototype.api = {
                 resolve(body);
             });
         });
-    },
-    /**
-     * List of all emoticons for a channel.
-     *
-     * @params {string} channel
-     */
-    emoticons: function emoticons(channel, cb) {
-        return new Promise(function (resolve, reject) {
-            Request('https://api.twitch.tv/kraken/chat/'+channel.toLowerCase()+'/emoticons', function (err, res, body) {
-                if (err) {
-                    return reject(err);
-                } else if (res.statusCode !== 200) {
-                    err = new Error("Unexpected status code: " + res.statusCode);
-                    return reject(err);
-                }
-                resolve(body);
-            });
-        });
     }
 };
 
@@ -1161,7 +1143,14 @@ client.prototype.api.channels = {
 };
 
 client.prototype.api.chat = {
-
+    get: function get(channel) {
+        channel = channel.replace('#', '').toLowerCase();
+        return apiAnonymousCall('https://api.twitch.tv/kraken/chat/'+channel, true);
+    },
+    emoticons: function emoticons(channel) {
+        channel = channel.replace('#', '').toLowerCase();
+        return apiAnonymousCall('https://api.twitch.tv/kraken/chat/emoticons', true);
+    }
 };
 
 client.prototype.api.follows = {
