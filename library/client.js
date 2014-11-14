@@ -1033,25 +1033,157 @@ client.prototype.api = {
                 resolve(body);
             });
         });
-    },
-    /**
-     * Returns a channel object.
-     *
-     * @params {string} channel
-     */
-    channels: function channels(channel) {
+    }
+};
+
+// https://github.com/justintv/Twitch-API/blob/master/v3_resources/blocks.md
+client.prototype.api.blocks = {
+    get: function get(channel, limit, offset) {
+        channel = channel.replace('#', '').toLowerCase();
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+
         return new Promise(function (resolve, reject) {
-            Request('https://api.twitch.tv/kraken/channels/'+channel.toLowerCase(), function (err, res, body) {
-                if (err) {
-                    return reject(err);
-                } else if (res.statusCode !== 200) {
-                    err = new Error("Unexpected status code: " + res.statusCode);
-                    return reject(err);
-                }
-                resolve(body);
-            });
+            if (Database === null) {
+                Database = new Locally('./database');
+            }
+            var collection = Database.collection('tokens');
+
+            if (collection.where({channel: channel}).length >= 1) {
+                token = collection.where({channel: channel})[0].token;
+                var options = {
+                    url: 'https://api.twitch.tv/kraken/users/'+channel+'/blocks?limit='+limit+'&offset='+offset,
+                    headers: {
+                        'Authorization': 'OAuth '+token
+                    },
+                    json: true,
+                    method: 'get'
+                };
+
+                Request(options, function (error, response, body) {
+                    if (!error && (response.statusCode == 200 || response.statusCode == 204)) {
+                        resolve(body);
+                    } else {
+                        reject(response.statusCode);
+                    }
+                });
+            } else {
+                reject(422);
+            }
+        });
+    },
+    put: function put(channel, target) {
+        channel = channel.replace('#', '').toLowerCase();
+
+        return new Promise(function (resolve, reject) {
+            if (Database === null) {
+                Database = new Locally('./database');
+            }
+            var collection = Database.collection('tokens');
+
+            if (collection.where({channel: channel}).length >= 1) {
+                token = collection.where({channel: channel})[0].token;
+                var options = {
+                    url: 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target,
+                    headers: {
+                        'Authorization': 'OAuth '+token
+                    },
+                    json: true,
+                    method: 'put'
+                };
+
+                Request(options, function (error, response, body) {
+                    if (!error && (response.statusCode == 200 || response.statusCode == 204)) {
+                        resolve(body);
+                    } else {
+                        reject(response.statusCode);
+                    }
+                });
+            } else {
+                reject(422);
+            }
+        });
+    },
+    delete: function remove(channel, target) {
+        channel = channel.replace('#', '').toLowerCase();
+
+        return new Promise(function (resolve, reject) {
+            if (Database === null) {
+                Database = new Locally('./database');
+            }
+            var collection = Database.collection('tokens');
+
+            if (collection.where({channel: channel}).length >= 1) {
+                token = collection.where({channel: channel})[0].token;
+                var options = {
+                    url: 'https://api.twitch.tv/kraken/users/'+channel+'/blocks/'+target,
+                    headers: {
+                        'Authorization': 'OAuth '+token
+                    },
+                    json: true,
+                    method: 'delete'
+                };
+
+                Request(options, function (error, response) {
+                    if (!error && (response.statusCode == 200 || response.statusCode == 204)) {
+                        resolve(response.statusCode);
+                    } else {
+                        reject(response.statusCode);
+                    }
+                });
+            } else {
+                reject(422);
+            }
         });
     }
+};
+
+client.prototype.api.channels = {
+
+};
+
+client.prototype.api.chat = {
+
+};
+
+client.prototype.api.follows = {
+
+};
+
+client.prototype.api.games = {
+
+};
+
+client.prototype.api.ingests = {
+
+};
+
+client.prototype.api.root = {
+
+};
+
+client.prototype.api.search = {
+
+};
+
+client.prototype.api.streams = {
+
+};
+
+client.prototype.api.subscriptions = {
+
+};
+
+client.prototype.api.teams = {
+
+};
+
+client.prototype.api.users = {
+
+};
+
+client.prototype.api.videos = {
+
 };
 
 module.exports = client;
