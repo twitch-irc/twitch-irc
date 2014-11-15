@@ -1212,7 +1212,12 @@ client.prototype.api.follows = {
 };
 
 client.prototype.api.games = {
-
+    get: function get(limit, offset, hls) {
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/games/top?limit=' + limit + '&offset=' + offset+'&hls='+hls, true);
+    }
 };
 
 client.prototype.api.ingests = {
