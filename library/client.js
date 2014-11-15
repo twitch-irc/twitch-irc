@@ -1306,7 +1306,15 @@ client.prototype.api.subscriptions = {
 };
 
 client.prototype.api.teams = {
-
+    get: function get(limit, offset) {
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/teams?limit='+limit+'&offset='+offset, true);
+    },
+    team: function team(name) {
+        name = typeof name !== 'undefined' ? name : '';
+        return apiAnonymousCall('https://api.twitch.tv/kraken/teams/'+name, true);
+    }
 };
 
 client.prototype.api.users = {
