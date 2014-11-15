@@ -1277,11 +1277,12 @@ client.prototype.api.streams = {
         hls = typeof hls !== 'undefined' ? hls : false;
         return apiAnonymousCall('https://api.twitch.tv/kraken/streams/summary?limit='+limit+'&offset='+offset+'&hls='+hls, true);
     },
-    followed: function followed(limit, offset, hls) {
+    followed: function followed(channel, limit, offset, hls) {
+        channel = channel.replace('#', '').toLowerCase();
         limit = typeof limit !== 'undefined' ? limit : 25;
         offset = typeof offset !== 'undefined' ? offset : 0;
         hls = typeof hls !== 'undefined' ? hls : false;
-        return apiAnonymousCall('https://api.twitch.tv/kraken/streams/followed?limit='+limit+'&offset='+offset+'&hls='+hls, true);
+        return apiCall(channel, 'https://api.twitch.tv/kraken/streams/followed?limit='+limit+'&offset='+offset+'&hls='+hls, 'user_read', 'get', null, true);
     }
 };
 
@@ -1318,11 +1319,48 @@ client.prototype.api.teams = {
 };
 
 client.prototype.api.users = {
-
+    get: function get(name) {
+        name = name.replace('#', '').toLowerCase();
+        return apiAnonymousCall('https://api.twitch.tv/kraken/users/'+name, true);
+    },
+    user: function user(channel) {
+        channel = channel.replace('#', '').toLowerCase();
+        return apiCall(channel, 'https://api.twitch.tv/kraken/user', 'user_read', 'get', null, true);
+    },
+    followed: function followed(channel, limit, offset, hls) {
+        channel = channel.replace('#', '').toLowerCase();
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiCall(channel, 'https://api.twitch.tv/kraken/streams/followed?limit='+limit+'&offset='+offset+'&hls='+hls, 'user_read', 'get', null, true);
+    },
+    videos: function videos(channel, limit, offset) {
+        channel = channel.replace('#', '').toLowerCase();
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        return apiCall(channel, 'https://api.twitch.tv/kraken/videos/followed?limit='+limit+'&offset='+offset, 'user_read', 'get', null, true);
+    }
 };
 
 client.prototype.api.videos = {
-
+    get: function get(id) {
+        id = typeof id !== 'undefined' ? id : '';
+        return apiAnonymousCall('https://api.twitch.tv/kraken/videos/'+id, true);
+    },
+    top: function top(limit, offset, game, period) {
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        game = typeof game !== 'undefined' ? game : '';
+        period = typeof period !== 'undefined' ? period : 'week';
+        return apiAnonymousCall('https://api.twitch.tv/kraken/videos/top?game='+game+'&period='+period+'&limit='+limit+'&offset='+offset, true);
+    },
+    channel: function channel(channel, limit, offset, broadcasts) {
+        channel = channel.replace('#', '').toLowerCase();
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        broadcasts = typeof broadcasts !== 'undefined' ? broadcasts : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/videos?limit='+limit+'&offset='+offset+'&broadcasts='+broadcasts, true);
+    }
 };
 
 module.exports = client;
