@@ -1076,7 +1076,6 @@ function apiAnonymousCall(url, expectJSON) {
     });
 }
 
-// https://github.com/justintv/Twitch-API/blob/master/v3_resources/blocks.md
 client.prototype.api.blocks = {
     get: function get(channel, limit, offset) {
         channel = channel.replace('#', '').toLowerCase();
@@ -1094,7 +1093,6 @@ client.prototype.api.blocks = {
     }
 };
 
-// https://github.com/justintv/Twitch-API/blob/master/v3_resources/channels.md
 client.prototype.api.channels = {
     get: {
         channel: function channel(channel) {
@@ -1146,7 +1144,6 @@ client.prototype.api.channels = {
     }
 };
 
-// https://github.com/justintv/Twitch-API/blob/master/v3_resources/chat.md
 client.prototype.api.chat = {
     chat: function chat(channel) {
         channel = channel.replace('#', '').toLowerCase();
@@ -1158,7 +1155,6 @@ client.prototype.api.chat = {
     }
 };
 
-// https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md
 client.prototype.api.follows = {
     get: {
         followers: function followers(channel, limit, offset, direction) {
@@ -1255,7 +1251,38 @@ client.prototype.api.search = {
 };
 
 client.prototype.api.streams = {
-
+    channel: function channel(channel) {
+        channel = channel.replace('#', '').toLowerCase();
+        return apiAnonymousCall('https://api.twitch.tv/kraken/streams/'+channel, true);
+    },
+    streams: function streams(game, channels, limit, offset, embeddable, hls, client_id) {
+        game = typeof game !== 'undefined' ? game : '';
+        channels = typeof channels !== 'undefined' ? channels : '';
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        embeddable = typeof embeddable !== 'undefined' ? embeddable : false;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        client_id = typeof client_id !== 'undefined' ? client_id : '';
+        return apiAnonymousCall('https://api.twitch.tv/kraken/streams?game='+game+'&channel='+channels+'&limit='+limit+'&offset='+offset+'&embeddable='+embeddable+'&hls='+hls+'&client_id='+client_id, true);
+    },
+    featured: function featured(limit, offset, hls) {
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/streams/featured?limit=' + limit + '&offset=' + offset+'&hls='+hls, true);
+    },
+    summary: function summary(limit, offset, hls) {
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/streams/summary?limit=' + limit + '&offset=' + offset+'&hls='+hls, true);
+    },
+    followed: function followed(limit, offset, hls) {
+        limit = typeof limit !== 'undefined' ? limit : 25;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/streams/followed?limit=' + limit + '&offset=' + offset+'&hls='+hls, true);
+    }
 };
 
 client.prototype.api.subscriptions = {
