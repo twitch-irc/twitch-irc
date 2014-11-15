@@ -23,7 +23,6 @@
  */
 
 var Chalk    = require('chalk');
-var Database = null;
 var Express  = require('express');
 var Locally  = require('locallydb');
 var Method   = require('method-override');
@@ -32,6 +31,9 @@ var Passport = require('passport');
 var Strategy = require('passport-twitch').Strategy;
 
 var App      = Express();
+
+var Database = null;
+var DBPath   = './database';
 
 /**
  * Customizing the logger for a better understanding of what's going on.
@@ -49,6 +51,8 @@ module.exports = function(config) {
         var clientID = this.options.oauth.clientID || '';
         var clientSecret = this.options.oauth.clientSecret || '';
         var scopes = this.options.oauth.scopes || '';
+
+        DBPath = (typeof options.database != 'undefined') ? options.database : './database';
 
         if (clientID.trim() === '' || clientSecret.trim() === '' || scopes.trim() === '') {
             // Not using oauth
@@ -79,7 +83,7 @@ module.exports = function(config) {
                 function (accessToken, refreshToken, profile, done) {
                     process.nextTick(function () {
                         if (Database === null) {
-                            Database = new Locally('./database');
+                            Database = new Locally(DBPath);
                         }
                         var collection = Database.collection('tokens');
                         if (collection.where({channel: profile.username.toLowerCase()}).length >= 1) {

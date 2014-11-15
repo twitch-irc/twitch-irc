@@ -37,7 +37,10 @@ var Socket   = require('./socket');
 var Stream   = require('irc-message-stream');
 var String   = require('string');
 var Util     = require('util');
+
 var Database = null;
+var DBPath   = './database';
+
 /**
  * Represents a new IRC client.
  *
@@ -55,6 +58,8 @@ var client = function client(options) {
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
+
+    DBPath = (typeof this.options.database != 'undefined') ? this.options.database : './database';
 
     var checkUpdates = (typeof this.options.checkUpdates != 'undefined') ? this.options.checkUpdates : true;
 
@@ -864,7 +869,7 @@ client.prototype.db = {
      */
     insert: function insert(collection, elements) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         collection.insert(elements);
@@ -880,7 +885,7 @@ client.prototype.db = {
      */
     where: function where(collection, query) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         deferredWhere.resolve(collection.where(query));
@@ -894,7 +899,7 @@ client.prototype.db = {
      */
     get: function get(collection, cid) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         if (collection.get(cid) === undefined) {
@@ -911,7 +916,7 @@ client.prototype.db = {
      */
     list: function list(collection) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         deferredList.resolve(collection.items);
@@ -926,7 +931,7 @@ client.prototype.db = {
      */
     update: function update(collection, cid, object) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         if (collection.update(cid, object)) {
@@ -946,7 +951,7 @@ client.prototype.db = {
      */
     replace: function replace(collection, cid, object) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         if (collection.replace(cid, object)) {
@@ -965,7 +970,7 @@ client.prototype.db = {
      */
     remove: function remove(collection, cid) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection(collection);
         if (collection.remove(cid)) {
@@ -1021,7 +1026,7 @@ client.prototype.api = {
 function apiCall(channel, url, scope, method, data, expectJSON) {
     return new Promise(function (resolve, reject) {
         if (Database === null) {
-            Database = new Locally('./database');
+            Database = new Locally(DBPath);
         }
         var collection = Database.collection('tokens');
 
