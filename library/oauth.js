@@ -83,9 +83,9 @@ module.exports = function(config) {
                         }
                         var collection = Database.collection('tokens');
                         if (collection.where({channel: profile.username.toLowerCase()}).length >= 1) {
-                            collection.update(collection.where({channel: profile.username.toLowerCase()})[0].cid, {channel: profile.username.toLowerCase(), token: accessToken});
+                            collection.update(collection.where({channel: profile.username.toLowerCase()})[0].cid, {channel: profile.username.toLowerCase(), token: accessToken, scopes: scopes});
                         } else {
-                            collection.insert({channel: profile.username.toLowerCase(), token: accessToken});
+                            collection.insert({channel: profile.username.toLowerCase(), token: accessToken, scopes: scopes});
                         }
                         collection.save();
                         return done(null, profile);
