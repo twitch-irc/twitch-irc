@@ -40,6 +40,8 @@ var Util     = require('util');
 
 var Database = null;
 var DBPath   = './database';
+var Server = 'irc.twitch.tv';
+var Port = 443;
 
 /**
  * Represents a new IRC client.
@@ -166,6 +168,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             if (self.debugIgnore.indexOf('connected') === -1) { self.logger.event('connected'); }
             self.emit('connected', self.socket.remoteAddress, self.socket.remotePort);
+            Server = self.socket.remoteAddress;
+            Port = self.socket.remotePort;
 
             var options = self.options.options || {};
             var twitchClient = options.tc || 3;
@@ -624,10 +628,8 @@ client.prototype.fastReconnect = function fastReconnect() {
 
     var connection = self.options.connection || {};
 
-    var preferredServer = connection.preferredServer || null;
-    var preferredPort = connection.preferredPort || null;
     var serverType = connection.serverType || 'chat';
-    var host = Servers.getServer(serverType, preferredServer, preferredPort);
+    var host = Servers.getServer(serverType, Server, Port);
 
     var authenticate = function authenticate() {
         var identity = self.options.identity || {};
