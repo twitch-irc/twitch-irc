@@ -1233,7 +1233,25 @@ client.prototype.api.root = {
 };
 
 client.prototype.api.search = {
-
+    channels: function channels(query, limit, offset) {
+        query = typeof query !== 'undefined' ? query : '';
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/search/channels?q='+query+'&limit=' + limit + '&offset=' + offset, true);
+    },
+    streams: function streams(query, limit, offset, hls) {
+        query = typeof query !== 'undefined' ? query : '';
+        limit = typeof limit !== 'undefined' ? limit : 10;
+        offset = typeof offset !== 'undefined' ? offset : 0;
+        hls = typeof hls !== 'undefined' ? hls : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/search/streams?q='+query+'&limit=' + limit + '&offset=' + offset+'&hls='+hls, true);
+    },
+    games: function games(query, type, live) {
+        query = typeof query !== 'undefined' ? query : '';
+        type = typeof type !== 'undefined' ? type : 'suggest';
+        live = typeof live !== 'undefined' ? live : false;
+        return apiAnonymousCall('https://api.twitch.tv/kraken/search/games?q='+query+'&type='+type+'&live='+live, true);
+    }
 };
 
 client.prototype.api.streams = {
