@@ -1221,7 +1221,9 @@ client.prototype.api.games = {
 };
 
 client.prototype.api.ingests = {
-
+    get: function get() {
+        return apiAnonymousCall('https://api.twitch.tv/kraken/ingests', true);
+    }
 };
 
 client.prototype.api.root = {
