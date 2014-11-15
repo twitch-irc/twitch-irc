@@ -38,7 +38,7 @@ var errors = require('./errors');
  */
 var createSocket = function createSocket(client, options, logger, port, host, callback) {
     var socket = net.connect(port, host, function() {
-    	logger.event('connecting');
+        if (options.options.debugIgnore.indexOf('connecting') === -1) { logger.event('connecting'); }
     	client.emit('connecting', host, port);
         callback();
     });
@@ -46,12 +46,19 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     socket.crlfWrite = function(data) {
         var string = util.format.apply(this, arguments);
         this.write(string + '\r\n');
-    }
+    };
+
+    socket.forceDisconnect = function() {
+        this.end();
+        this.destroy();
+        if (options.options.debugIgnore.indexOf('disconnected') === -1) { logger.event('disconnected'); }
+        client.emit('disconnected', errors.get('ECONNABORTED'));
+    };
     
     // Encounter an error, emit disconnected event with the error message and reconnect to server.
     socket.on('error', function(err) {
     	logger.error(errors.get(err.code));
-    	logger.event('disconnected');
+        if (options.options.debugIgnore.indexOf('disconnected') === -1) { logger.event('disconnected'); }
     	client.emit('disconnected', errors.get(err.code));
         var connection = options.connection || {};
     	var reconnect = connection.reconnect || true;
@@ -62,7 +69,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     	// Try to reconnect.
     	if (reconnect && (connection.retries >= 1 || connection.retries === -1)) {
 	    	setTimeout(function(){
-	    		logger.event('reconnect');
+                if (options.options.debugIgnore.indexOf('reconnect') === -1) { logger.event('reconnect'); }
 	    		client.emit('reconnect');
 	    		if (connection.retries !== -1) { connection.retries--; }
 	    		client.connect();
@@ -70,7 +77,10 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     	}
     	
     	// Couldn't reconnect to server after X retries, emit connectfail event.
-    	if (reconnect && connection.retries === 0) { logger.event('connectfail'); client.emit('connectfail'); }
+    	if (reconnect && connection.retries === 0) {
+            if (options.options.debugIgnore.indexOf('connectfail') === -1) { logger.event('connectfail'); }
+            client.emit('connectfail');
+        }
     });
 
     return socket;

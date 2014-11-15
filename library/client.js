@@ -589,7 +589,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
  * @params callback
  * @fires connect#logon
  */
-client.prototype.connect = function connect(callback) {
+client.prototype.connect = function connect() {
     var self = this;
 
     var connection = self.options.connection || {};
@@ -614,6 +614,10 @@ client.prototype.connect = function connect(callback) {
     self.socket = Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
 
     self.socket.pipe(self.stream);
+};
+
+client.prototype.disconnect = function disconnect() {
+    this.socket.forceDisconnect();
 };
 
 /**
@@ -1110,11 +1114,12 @@ client.prototype.api.channels = {
             offset = typeof offset !== 'undefined' ? offset : 0;
             return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/videos?limit='+limit+'&offset='+offset, true);
         },
-        follows: function follows(channel, limit, offset) {
+        follows: function follows(channel, limit, offset, direction) {
             channel = channel.replace('#', '').toLowerCase();
             limit = typeof limit !== 'undefined' ? limit : 25;
             offset = typeof offset !== 'undefined' ? offset : 0;
-            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/follows?limit='+limit+'&offset='+offset, true);
+            direction = typeof direction !== 'undefined' ? direction : 'desc';
+            return apiAnonymousCall('https://api.twitch.tv/kraken/channels/'+channel+'/follows?limit='+limit+'&offset='+offset+'&direction='+direction, true);
         },
         editors: function editors(channel) {
             channel = channel.replace('#', '').toLowerCase();
@@ -1154,8 +1159,7 @@ client.prototype.api.chat = {
         channel = channel.replace('#', '').toLowerCase();
         return apiAnonymousCall('https://api.twitch.tv/kraken/chat/'+channel, true);
     },
-    emoticons: function emoticons(channel) {
-        channel = channel.replace('#', '').toLowerCase();
+    emoticons: function emoticons() {
         return apiAnonymousCall('https://api.twitch.tv/kraken/chat/emoticons', true);
     }
 };

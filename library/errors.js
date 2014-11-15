@@ -38,7 +38,7 @@ var errors = (function() {
          'EHOSTDOWN': 'Host is down',
          'EHOSTUNREACH': 'No route to host',
          'EREMOTEIO': 'Remote I/O error',
-         'ESOCKTNOSUPPORT': 'Socket type not supported',
+         'ESOCKTNOSUPPORT': 'Socket type not supported'
      };
 
      return {
