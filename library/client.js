@@ -58,6 +58,7 @@ var client = function client(options) {
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
+    this.fastReconnectPhase = false;
 
     DBPath = (typeof this.options.database != 'undefined') ? this.options.database : './database';
 
@@ -614,6 +615,39 @@ client.prototype.connect = function connect() {
     self.socket = Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
 
     self.socket.pipe(self.stream);
+};
+
+client.prototype.fastReconnect = function fastReconnect() {
+    var self = this;
+
+    self.fastReconnectPhase = true;
+
+    var connection = self.options.connection || {};
+
+    var preferredServer = connection.preferredServer || null;
+    var preferredPort = connection.preferredPort || null;
+    var serverType = connection.serverType || 'chat';
+    var host = Servers.getServer(serverType, preferredServer, preferredPort);
+
+    var authenticate = function authenticate() {
+        var identity = self.options.identity || {};
+        var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
+        var password = identity.password || 'SCHMOOPIIE';
+
+        if (self.debugIgnore.indexOf('logon') === -1) { self.logger.event('logon'); }
+        self.emit('logon');
+
+        self.socket.crlfWrite('PASS '+password);
+        self.socket.crlfWrite('NICK %s', nickname);
+        self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
+    };
+    var oldSocket = self.socket;
+    setTimeout(function(){
+        oldSocket.forceDisconnect();
+        self.fastReconnectPhase = false;
+        self.socket.pipe(self.stream);
+    },25000);
+    self.socket = new Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
 };
 
 client.prototype.disconnect = function disconnect() {
