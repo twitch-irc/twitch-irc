@@ -26,6 +26,8 @@ var util = require('util');
 var net = require('net');
 var errors = require('./errors');
 
+var retry = 1;
+
 /**
  * Create a new socket for connection and handle any errors related to the connection.
  * @param client
@@ -54,6 +56,10 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
         if (options.options.debugIgnore.indexOf('disconnected') === -1) { logger.event('disconnected'); }
         client.emit('disconnected', errors.get('ECONNABORTED'));
     };
+
+    socket.resetRetry = function() {
+        retry = 1;
+    };
     
     // Encounter an error, emit disconnected event with the error message and reconnect to server.
     socket.on('error', function(err) {
@@ -68,12 +74,16 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     	
     	// Try to reconnect.
     	if (reconnect && (connection.retries >= 1 || connection.retries === -1)) {
+            retry++;
+            var interval = 5000*retry;
+            if (interval >= 90000) { interval = 90000; }
+            if (options.options.debugIgnore.indexOf('reconnect') === -1) { logger.info('reconnecting in '+(interval/1000)+' seconds..'); }
 	    	setTimeout(function(){
                 if (options.options.debugIgnore.indexOf('reconnect') === -1) { logger.event('reconnect'); }
 	    		client.emit('reconnect');
 	    		if (connection.retries !== -1) { connection.retries--; }
 	    		client.connect();
-	    	}, 5000);
+	    	}, interval);
     	}
     	
     	// Couldn't reconnect to server after X retries, emit connectfail event.
