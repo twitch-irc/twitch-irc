@@ -56,15 +56,15 @@ var client = function client(options) {
 
     this.logger = require('./logger')(options);
     this.oauth = require('./oauth')(options);
-    this.options = (typeof options.options != 'undefined') ? options.options : {};
+    this.options = (typeof options != 'undefined') ? options : {};
     this.debugIgnore = this.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
     this.fastReconnectPhase = false;
 
-    DBPath = (typeof this.options.database != 'undefined') ? this.options.database : './database';
+    DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
 
-    var checkUpdates = (typeof this.options.checkUpdates != 'undefined') ? this.options.checkUpdates : true;
+    var checkUpdates = (this.options.options && (typeof this.options.options.checkUpdates !== 'undefined')) ? this.options.options.checkUpdates : true;
 
     if (checkUpdates) {
         Request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
