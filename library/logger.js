@@ -39,13 +39,15 @@ module.exports = function(config) {
 	Logger.setLevels({
 		raw:0,
 		event: 1,
-		error:2,
-		crash: 3
+        info: 2,
+		error: 3,
+		crash: 4
 	});
 
 	Logger.addColors({
 		raw: 'cyan',
 		event: 'green',
+        info: 'yellow',
 		error: 'red',
 		crash: 'red'
 	});
