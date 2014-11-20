@@ -42,6 +42,7 @@ var Database = null;
 var DBPath   = './database';
 var Server = 'irc.twitch.tv';
 var Port = 443;
+var Channels = [];
 
 /**
  * Represents a new IRC client.
@@ -196,6 +197,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} username
              */
             if (self.debugIgnore.indexOf('join') === -1) { self.logger.event('join'); }
+            Channels.push(message.params[0].replace('#', '').toLowerCase());
+            Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
             break;
 
@@ -212,6 +215,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             if (self.debugIgnore.indexOf('part') === -1) { self.logger.event('part'); }
             self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            var index = Channels.indexOf(message.params[0].replace('#', '').toLowerCase());
+            if (index !== -1) {
+                Channels.splice(index, 1);
+            }
+            Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             break;
 
         case 'NOTICE':
@@ -589,6 +597,58 @@ client.prototype._handleMessage = function _handleMessage(message) {
     }
 };
 
+client.prototype._fastReconnectMessage = function _fastReconnectMessage(message) {
+    var self = this;
+
+    // Logging RAW messages.
+    if (message.command.match(/^[0-9]+$/g)) { self.logger.raw('%s: %s', message.command, message.params[1]); }
+
+    var messageFrom = message.prefix;
+    if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
+
+    switch(message.command) {
+        case 'PING':
+            self.socket.crlfWrite('PONG');
+            break;
+
+        case 'PONG':
+            self.emit('pong', (((new Date()-Latency)/1000)%60));
+            break;
+
+        case '372':
+            Server = self.socket.remoteAddress;
+            Port = self.socket.remotePort;
+            self.socket.resetRetry();
+
+            var options = self.options.options || {};
+            var twitchClient = options.tc || 3;
+            self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
+
+            var timer = 0;
+            Channels.forEach(function(channel) {
+                setTimeout(function(){self.join(channel);}, timer);
+                timer = timer+3000;
+            });
+            break;
+
+        case 'JOIN':
+            self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            break;
+
+        case 'PART':
+            self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            break;
+
+        case 'NOTICE':
+            if (message.prefix === 'tmi.twitch.tv') {
+                if (message.params[1] === 'Login unsuccessful') {
+                    self.emit('disconnected', message.params[1]);
+                }
+            }
+            break;
+    }
+};
+
 /**
  * Connect to the server.
  *
@@ -625,6 +685,8 @@ client.prototype.connect = function connect() {
 client.prototype.fastReconnect = function fastReconnect() {
     var self = this;
 
+    self.logger.event('gracefully reconnecting to twitch..');
+
     self.fastReconnectPhase = true;
 
     var connection = self.options.connection || {};
@@ -647,10 +709,12 @@ client.prototype.fastReconnect = function fastReconnect() {
     var oldSocket = self.socket;
     setTimeout(function(){
         oldSocket.forceDisconnect();
+        self.logger.event('old connection to twitch dropped.');
         self.fastReconnectPhase = false;
         self.socket.pipe(self.stream);
     },25000);
     self.socket = new Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
+    self.socket.pipe(Stream().on('data', self._fastReconnectMessage.bind(self)));
 };
 
 client.prototype.disconnect = function disconnect() {
