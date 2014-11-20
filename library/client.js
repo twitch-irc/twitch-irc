@@ -56,8 +56,8 @@ var client = function client(options) {
 
     this.logger = require('./logger')(options);
     this.oauth = require('./oauth')(options);
-    this.options = options || {};
-    this.debugIgnore = this.options.options.debugIgnore || [];
+    this.options = (typeof options.options != 'undefined') ? options.options : {};
+    this.debugIgnore = this.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
     this.fastReconnectPhase = false;
