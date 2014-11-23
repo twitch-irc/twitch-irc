@@ -138,6 +138,12 @@ Create collections and interact with them like any database management system.
 
 [Click here for the database documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
 
+## Twitch API
+
+Interact with all the Twitch API endpoints.
+
+[Click here for the Twitch API documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API).
+
 ## Contributing Guidelines
 
 Please review the [guidelines for contributing](https://github.com/Schmoopiie/twitch-irc/wiki/Contributing) to this repository.
