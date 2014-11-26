@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-var Client = require('../client');
+var Client   = require('../client');
 var Promise  = require("promise");
 var Request  = require('request');
 
