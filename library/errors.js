@@ -38,7 +38,8 @@ var errors = (function() {
          'EHOSTDOWN': 'Host is down',
          'EHOSTUNREACH': 'No route to host',
          'EREMOTEIO': 'Remote I/O error',
-         'ESOCKTNOSUPPORT': 'Socket type not supported'
+         'ESOCKTNOSUPPORT': 'Socket type not supported',
+         'EPIPE': 'The local end has been shut down on a connection oriented socket.'
      };
 
      return {
