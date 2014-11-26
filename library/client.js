@@ -706,7 +706,7 @@ client.prototype.fastReconnect = function fastReconnect() {
     };
     var oldSocket = self.socket;
     setTimeout(function(){
-        oldSocket.forceDisconnect();
+        oldSocket.forceDisconnect(true);
         self.logger.event('old connection to twitch dropped.');
         self.gracefulReconnection = false;
         self.socket.pipe(self.stream);
@@ -716,7 +716,7 @@ client.prototype.fastReconnect = function fastReconnect() {
 };
 
 client.prototype.disconnect = function disconnect() {
-    this.socket.forceDisconnect();
+    this.socket.forceDisconnect(false);
 };
 
 /**

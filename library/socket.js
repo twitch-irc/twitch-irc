@@ -50,11 +50,16 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
         this.write(string + '\r\n');
     };
 
-    socket.forceDisconnect = function() {
+    socket.forceDisconnect = function(silent) {
+        silent = typeof silent !== 'undefined' ? silent : false;
         this.end();
         this.destroy();
-        if (options.options.debugIgnore.indexOf('disconnected') === -1) { logger.event('disconnected'); }
-        client.emit('disconnected', errors.get('ECONNABORTED'));
+        if (!silent) {
+            if (options.options.debugIgnore.indexOf('disconnected') === -1) {
+                logger.event('disconnected');
+            }
+            client.emit('disconnected', errors.get('ECONNABORTED'));
+        }
     };
 
     socket.resetRetry = function() {
