@@ -29,8 +29,6 @@ var Events   = require('events');
 var Latency  = new Date();
 var Locally  = require('locallydb');
 var Package  = require('./../package.json');
-var Promise  = require("promise");
-var Q        = require('q');
 var Request  = require('request');
 var Servers  = require('./servers');
 var Socket   = require('./socket');
@@ -61,7 +59,7 @@ var client = function client(options) {
     this.debugIgnore = this.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
-    this.fastReconnectPhase = false;
+    this.gracefulReconnection = false;
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
 
@@ -687,7 +685,7 @@ client.prototype.fastReconnect = function fastReconnect() {
 
     self.logger.event('gracefully reconnecting to twitch..');
 
-    self.fastReconnectPhase = true;
+    self.gracefulReconnection = true;
 
     var connection = self.options.connection || {};
 
@@ -710,7 +708,7 @@ client.prototype.fastReconnect = function fastReconnect() {
     setTimeout(function(){
         oldSocket.forceDisconnect();
         self.logger.event('old connection to twitch dropped.');
-        self.fastReconnectPhase = false;
+        self.gracefulReconnection = false;
         self.socket.pipe(self.stream);
     },25000);
     self.socket = new Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
