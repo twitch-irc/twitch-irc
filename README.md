@@ -4,10 +4,6 @@
 ![](http://i.imgur.com/7PMEvN5.png)
 Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the U.S. and/or other countries. "Twitch-IRC" is not operated by, sponsored by, or affiliated with Twitch Interactive, Inc. in any way.
 
-## Generator
-
-If you wish to save time developing your bot, you might want to check [generator-twitch-irc](https://github.com/Schmoopiie/generator-twitch-irc)!
-
 ## Installing the library
 
 Either add the library as a dependency in your ``package.json`` or install the library globally:
