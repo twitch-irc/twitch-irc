@@ -116,29 +116,15 @@ client.addListener "chat", (channel, user, message) ->
   return
 ```
 
-## Events
+## Features
 
-This is what makes this library unique. Twitch-IRC allows you to listen to multiple events at the same time.
-
-[Click here for the events documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Events).
-
-## Commands
-
-You can use each and every Twitch commands.
-
-[Click here for the commands documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Commands).
-
-## Database
-
-Create collections and interact with them like any database management system.
-
-[Click here for the database documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
-
-## Twitch API
-
-Interact with all the Twitch API endpoints.
-
-[Click here for the Twitch API documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API).
+- [Create your own cronjobs](https://github.com/Schmoopiie/twitch-irc/wiki/Cronjobs).
+- [Database management system](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
+- Gracefully reconnects to server.
+- Supports IRCv3 tags.
+- [Supports all Twitch events](https://github.com/Schmoopiie/twitch-irc/wiki/Events).
+- [Supports all Twitch commands](https://github.com/Schmoopiie/twitch-irc/wiki/Commands).
+- [Supports all Twitch API endpoints and OAuth 2.0](https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API).
 
 ## Contributing Guidelines
 
