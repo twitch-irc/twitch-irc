@@ -47,7 +47,6 @@
     "passport-twitch": "^1.0.1",
     "express-session": "^1.9.2",
     "ejs": "^1.0.0",
-    "jquery-extend": "^2.0.3",
     "querystring": "^0.2.0"
   },
   "devDependencies": {

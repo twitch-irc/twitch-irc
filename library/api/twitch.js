@@ -24,18 +24,7 @@
 
 var Client      = require('../client');
 var Request     = require('request');
-var Extend      = require('jquery-extend');
 var Querystring = require('querystring');
-
-var defaults = {
-    accessKey: null,
-    apiBase: 'https://api.twitch.tv/kraken',
-    apiVersion: '3',
-    json: true,
-    params: {},
-    replacements: {},
-    clientID: ''
-};
 
 module.exports = {
     twitch: function (channel, method, path, options, callback) {
@@ -43,56 +32,48 @@ module.exports = {
 
         channel = channel.replace('#', '');
         method = typeof method !== 'undefined' ? method : 'GET';
+        options = typeof options !== 'undefined' ? options : {};
 
         var Database = Client.getDatabase();
         var collection = Database.collection('tokens');
+        var token = '';
 
         path = typeof path === 'string' ? path : '';
         if (typeof options === 'function') {
             callback = options;
             options = {};
         }
-        options = Extend({}, defaults, options);
+
         callback = typeof callback === 'function' ? callback : function () {};
 
         if (collection.where({channel: channel}).length >= 1) {
-            options.accessKey = collection.where({channel: channel})[0].token;
+            token = collection.where({channel: channel})[0].token;
         }
 
-        // Replace tokens.
-        for (var replacement in options.replacements) {
-            if (!options.replacements.hasOwnProperty(replacement)) {
-                continue;
-            }
-            path = path.replace(':' + replacement, options.replacements[replacement]);
-        }
+        options = Querystring.stringify(options);
 
-        options.params = Querystring.stringify(options.params);
-
-        var requestSettings = {};
-        requestSettings.url = options.apiBase + path + (options.params ? '?' + options.params : '');
-        requestSettings.headers = {
-            'Accept': 'application/vnd.twitchtv.v' + options.apiVersion + '+json',
-            'Client-ID': options.clientID
+        var requestOptions = {
+            url: 'https://api.twitch.tv/kraken' + path + (options ? '?' + options : ''),
+            headers: {
+                'Accept': 'application/vnd.twitchtv.v3+json',
+                'Client-ID': ''
+            },
+            method: method
         };
 
-        requestSettings.method = method;
-
         if (options.accessKey) {
-            requestSettings.headers['Authorization'] = 'OAuth ' + options.accessKey;
+            requestOptions.headers['Authorization'] = 'OAuth ' + token;
         }
 
-        Request(requestSettings, function (error, response, body) {
+        Request(requestOptions, function (error, response, body) {
             if (error) {
                 return callback.call(self, error);
             }
-            if (options.json) {
-                try {
-                    body = JSON.parse(body);
-                }
-                catch (error) {
-                    return callback.call(self, error);
-                }
+            try {
+                body = JSON.parse(body);
+            }
+            catch (error) {
+                return callback.call(self, error);
             }
             return callback.call(self, null, response.statusCode, body);
         });
