@@ -961,10 +961,19 @@ for(var methodName in databaseMethods) {
     client.prototype[methodName]=databaseMethods[methodName];
 }
 
-var twitchMethods = require('./api/twitch');
-for(var methodName in twitchMethods) {
-    client.prototype[methodName]=twitchMethods[methodName];
-}
+var fs = require("fs");
+fs.readdirSync(__dirname+'/api').forEach(function(file) {
+    var apiMethods = require(__dirname+'/api/' + file);
+    for(var methodName in apiMethods) {
+        client.prototype[methodName]=apiMethods[methodName];
+    }
+});
+fs.readdirSync(__dirname+'/utils').forEach(function(file) {
+    var utilsMethods = require(__dirname+'/utils/' + file);
+    for(var methodName in utilsMethods) {
+        client.prototype[methodName]=utilsMethods[methodName];
+    }
+});
 
 exports.getDatabase = function() {
     if (Database === null) {
