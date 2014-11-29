@@ -961,9 +961,9 @@ for(var methodName in databaseMethods) {
     client.prototype[methodName]=databaseMethods[methodName];
 }
 
-var twitchAPIMethods = require('./api/twitch');
-for(var methodName in twitchAPIMethods) {
-    client.prototype[methodName]=twitchAPIMethods[methodName];
+var twitchMethods = require('./api/twitch');
+for(var methodName in twitchMethods) {
+    client.prototype[methodName]=twitchMethods[methodName];
 }
 
 exports.getDatabase = function() {
