@@ -62,7 +62,7 @@ module.exports = {
             method: method
         };
 
-        if (options.accessKey) {
+        if (token !== '') {
             requestOptions.headers['Authorization'] = 'OAuth ' + token;
         }
 
