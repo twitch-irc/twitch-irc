@@ -40,13 +40,15 @@
     "chalk": "^0.5.1",
     "cron": "^1.0.5",
     "promise": "^6.0.1",
-    "express": "latest",
-    "body-parser": "latest",
-    "method-override": "latest",
-    "passport": "latest",
-    "passport-twitch": "latest",
-    "express-session": "latest",
-    "ejs": "latest"
+    "express": "^4.10.4",
+    "body-parser": "^1.9.3",
+    "method-override": "^2.3.0",
+    "passport": "^0.2.1",
+    "passport-twitch": "^1.0.1",
+    "express-session": "^1.9.2",
+    "ejs": "^1.0.0",
+    "jquery-extend": "^2.0.3",
+    "querystring": "^0.2.0"
   },
   "devDependencies": {
     "vows": "0.6.x"
