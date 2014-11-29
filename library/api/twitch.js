@@ -30,6 +30,7 @@ module.exports = {
     twitch: function (channel, method, path, options, callback) {
         var self = this;
 
+        channel = typeof channel !== 'undefined' ? channel : 'no_channel_specified';
         channel = channel.replace('#', '');
         method = typeof method !== 'undefined' ? method : 'GET';
         options = typeof options !== 'undefined' ? options : {};
