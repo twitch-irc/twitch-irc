@@ -118,8 +118,8 @@ client.addListener "chat", (channel, user, message) ->
 
 ## Features
 
-- [Create your own cronjobs](https://github.com/Schmoopiie/twitch-irc/wiki/Cronjobs).
 - [Database management system](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
+- [Functions to make your life easier](https://github.com/Schmoopiie/twitch-irc/wiki/Utils).
 - Gracefully reconnects to server.
 - Supports IRCv3 tags.
 - [Supports all Twitch events](https://github.com/Schmoopiie/twitch-irc/wiki/Events).
