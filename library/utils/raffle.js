@@ -38,6 +38,15 @@ module.exports = {
             }
             channels[channel].push(username.toLowerCase());
         },
+        leave: function(channel, username) {
+            channel = channel.toLowerCase();
+            var index = channels[channel].indexOf(username.toLowerCase());
+            if (index >= 0) {
+                channels[channel].splice(index, 1);
+                return true;
+            }
+            return false;
+        },
         pick: function(channel) {
             channel = channel.toLowerCase();
             var count = channels[channel].length;
