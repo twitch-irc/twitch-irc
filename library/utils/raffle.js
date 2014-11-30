@@ -27,7 +27,6 @@
  *
  * @type {{utils: {raffle: {enter: enter, pick: pick, reset: reset, count: count, isParticipating: isParticipating}}}}
  */
-
 var channels = {};
 
 module.exports = {

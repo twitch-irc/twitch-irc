@@ -23,7 +23,6 @@
  */
 
 var Chalk    = require('chalk');
-var Cron     = require('cron').CronJob;
 var Data     = require('./data');
 var Events   = require('events');
 var Latency  = new Date();
@@ -941,19 +940,6 @@ client.prototype.mods = function modString(channel) {
  */
 client.prototype.raw = function raw(message) {
     this.socket.crlfWrite(message);
-};
-
-/**
- * Create a new cron job.
- *
- * @params {string} time
- * @params {string} timezone
- * @params {function} function
- */
-client.prototype.cron = function cron(time, fn) {
-    return new Cron(time, function(){
-        fn();
-    }, null, false);
 };
 
 var databaseMethods = require('./database');
