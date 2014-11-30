@@ -27,22 +27,41 @@
  *
  * @type {{utils: {raffle: {enter: enter, pick: pick, reset: reset, count: count, isParticipating: isParticipating}}}}
  */
+
+var channels = {};
+
 module.exports = {
     raffle: {
         enter: function(channel, username) {
-
+            channel = channel.toLowerCase();
+            if (!channels[channel]) {
+                channels[channel] = [];
+            }
+            channels[channel].push(username.toLowerCase());
         },
         pick: function(channel) {
-
+            channel = channel.toLowerCase();
+            var count = channels[channel].length;
+            if (count >= 1) {
+                return channels[channel][Math.floor((Math.random() * count))];
+            }
+            return null;
         },
         reset: function(channel) {
-
+            channels[channel.toLowerCase()] = [];
         },
         count: function(channel) {
-
+            channel = channel.toLowerCase();
+            if (channels[channel]) {
+                return channels[channel].length;
+            }
+            return 0;
         },
         isParticipating: function(channel, username) {
-
+            if (channels[channel.toLowerCase()].indexOf(username.toLowerCase()) >= 0) {
+                return true;
+            }
+            return false;
         }
     }
 };
