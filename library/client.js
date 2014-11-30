@@ -962,16 +962,20 @@ for(var methodName in databaseMethods) {
 }
 
 var fs = require("fs");
+
+client.prototype.api = {};
 fs.readdirSync(__dirname+'/api').forEach(function(file) {
     var apiMethods = require(__dirname+'/api/' + file);
     for(var methodName in apiMethods) {
-        client.prototype[methodName]=apiMethods[methodName];
+        client.prototype.api[methodName]=apiMethods[methodName];
     }
 });
+
+client.prototype.utils = {};
 fs.readdirSync(__dirname+'/utils').forEach(function(file) {
     var utilsMethods = require(__dirname+'/utils/' + file);
     for(var methodName in utilsMethods) {
-        client.prototype[methodName]=utilsMethods[methodName];
+        client.prototype.utils[methodName]=utilsMethods[methodName];
     }
 });
 

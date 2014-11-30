@@ -23,17 +23,26 @@
  */
 
 /**
- * Percentage of a string that is uppercase.
+ * Simple raffle manager.
  *
- * @type {{utils: {uppercase: uppercase}}}
+ * @type {{utils: {raffle: {enter: enter, pick: pick, reset: reset, count: count, isParticipating: isParticipating}}}}
  */
 module.exports = {
-    uppercase: function(string) {
-        var chars = string.length;
-        var u_let = string.match(/[A-Z]/g);
-        if (u_let !== null) {
-            return (u_let.length / chars);
+    raffle: {
+        enter: function(channel, username) {
+
+        },
+        pick: function(channel) {
+
+        },
+        reset: function(channel) {
+
+        },
+        count: function(channel) {
+
+        },
+        isParticipating: function(channel, username) {
+
         }
-        return 0;
     }
 };
