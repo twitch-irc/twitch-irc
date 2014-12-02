@@ -356,7 +356,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         break;
 
                     case (message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.') ||
-                    message.params[1] === 'UNAUTHORIZED JOIN':
+                        message.params[1] === 'UNAUTHORIZED JOIN':
                         /**
                          * Limitation by Twitch.
                          * The only limitation at this time is a limit of hosting. You can only host 3 channels in 30 minutes.
@@ -372,7 +372,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         break;
 
                     case (message.params[1] === 'You don\'t have permission to do this.' || String(message.params[1]).contains('Only the owner of this channel can use')) ||
-                    message.params[1] === 'You don\'t have permission to timeout people in this room.':
+                        message.params[1] === 'You don\'t have permission to timeout people in this room.':
                         /**
                          * Permission error by Twitch.
                          * You will receive a permission error message when you have insufficient access.
@@ -549,7 +549,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.emit('twitchnotify', message.params[0], message.params[1]);
 
                 switch(true) {
-                    case (String(message.params[1]).containString('just subscribed!')):
+                    case (String(message.params[1]).contains('just subscribed!')):
                         /**
                          * Someone has subscribed to a channel.
                          *
