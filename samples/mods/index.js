@@ -63,7 +63,7 @@ client.addListener('chat', function (channel, user, message) {
         // Make sure the channels object has the channel mods list..
         if (channels[channel]) {
             // Show in the console the channels object..
-            console.log(channels[channel]);
+            console.log(channels);
             // If the username is in the mods list for that channel..
             if (channels[channel].indexOf(user.username) >= 0) {
                 client.say(channel, 'I see you as a mod.');
