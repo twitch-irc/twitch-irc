@@ -5,16 +5,18 @@
 
 var irc = require('twitch-irc');
 
-// Calling a new client..
-var client = new irc.client({
+var clientOptions = {
     options: {
         debug: true,
         debugIgnore: ['ping', 'chat', 'action'],
         logging: false,
-        tc: 3
+        tc: 3,
+        checkUpdates: false
     },
     channels: ['schmoopiie']
-});
+};
+
+var client = new irc.client(clientOptions);
 
 // Connect the client to server..
 client.connect();
