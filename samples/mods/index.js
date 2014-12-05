@@ -27,7 +27,7 @@ var clientOptions = {
     },
     identity: {
         username: 'Schmoobot',
-        password: 'oauth:7muji7zkyilyda1c4ewhe22u8fcub01'
+        password: 'oauth:your_oauth_password'
     },
     channels: ['schmoopiie']
 };
