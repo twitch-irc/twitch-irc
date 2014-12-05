@@ -58,10 +58,10 @@ client.addListener('mods', function (channel, mods) {
 
 // How to check if username is a mod on a channel..
 client.addListener('chat', function (channel, user, message) {
-    // Make sure the channels object has the channel mods list..
-    if (channels[channel]) {
-        // If someone says !test on a channel..
-        if (message.toLowerCase() === '!test') {
+    // If someone says !test on a channel..
+    if (message.toLowerCase() === '!test') {
+        // Make sure the channels object has the channel mods list..
+        if (channels[channel]) {
             // Show in the console the channels object..
             console.log(channels[channel]);
             // If the username is in the mods list for that channel..
@@ -70,6 +70,8 @@ client.addListener('chat', function (channel, user, message) {
             } else {
                 client.say(channel, 'You\'re not a mod.');
             }
+        } else {
+            console.log('I never got the mods list for that channel :(');
         }
     }
 });
