@@ -36,7 +36,7 @@ $ npm install -g twitch-irc@beta
 
 ``identity``:
 - ``username``: {String} Username of your bot. (Optional)
-- ``passpord``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
+- ``password``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
 
 ``channels``: {Array} List of channels to join when connected to server.
 
