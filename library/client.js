@@ -230,7 +230,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
             break;
 
         case 'MODE':
-            console.log('modes changed..');
             if (message.prefix === 'jtv') {
                 if (message.params[1] === '+o') {
                     self.moderators[message.params[0]].push(message.params[2].toLowerCase());
