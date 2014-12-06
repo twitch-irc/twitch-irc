@@ -1,6 +1,6 @@
 {
   "name": "twitch-irc",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Twitch IRC library for NodeJS.",
   "keywords": [
     "irc",
