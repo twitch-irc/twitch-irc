@@ -58,6 +58,7 @@ var client = function client(options) {
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
+    this.moderators = {};
     this.gracefulReconnection = false;
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
@@ -134,7 +135,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
-
     switch(message.command) {
         case 'PING':
             /**
@@ -190,6 +190,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} username
              */
             if (self.debugIgnore.indexOf('join') < 0) { self.logger.event('join'); }
+            if (!self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
             Channels.push(message.params[0].replace('#', '').toLowerCase());
             Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
@@ -209,6 +210,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             if (index !== -1) {
                 Channels.splice(index, 1);
             }
+            // Remove duplicate entries..
             Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             break;
 
@@ -223,6 +225,22 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 if (message.params[1] === 'Login unsuccessful') {
                     if (self.debugIgnore.indexOf('disconnected') < 0) { self.logger.event('disconnected'); }
                     self.emit('disconnected', message.params[1]);
+                }
+            }
+            break;
+
+        case 'MODE':
+            console.log('modes changed..');
+            if (message.prefix === 'jtv') {
+                if (message.params[1] === '+o') {
+                    self.moderators[message.params[0]].push(message.params[2].toLowerCase());
+                    self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                } else {
+                    var index = self.moderators[message.params[0]].indexOf(message.params[2].toLowerCase());
+                    if (index >= 0) {
+                        self.moderators[message.params[0]].splice(index, 1);
+                    }
+                    self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                 }
             }
             break;
@@ -575,6 +593,14 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             else {
                 var username = message.parseHostmaskFromPrefix().nickname.toLowerCase();
+
+                Data.createTempUserData(username);
+                if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0) {
+                    Data.tempUserData[username].special.push('moderator');
+                }
+                if (message.params[0].replace('#', '').toLowerCase() === username) {
+                    Data.tempUserData[username].special.push('broadcaster');
+                }
                 Data.createChannelUserData(message.params[0], username, function(done) {
                     if (String(message.params[1]).startsWith('\u0001ACTION')) {
                         self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001'));
@@ -921,7 +947,7 @@ client.prototype.commercial = function commercial(channel, seconds) {
  *
  * @params {string} channel
  */
-client.prototype.mods = function modString(channel) {
+client.prototype.mods = function mods(channel) {
     if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mods');
 };
