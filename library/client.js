@@ -205,6 +205,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} username
              */
             if (self.debugIgnore.indexOf('part') < 0) { self.logger.event('part'); }
+            if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
             self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
             var index = Channels.indexOf(message.params[0].replace('#', '').toLowerCase());
             if (index !== -1) {
