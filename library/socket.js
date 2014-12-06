@@ -40,7 +40,7 @@ var retry = 1;
  */
 var createSocket = function createSocket(client, options, logger, port, host, callback) {
     var socket = net.connect(port, host, function() {
-        if (options.options.debugIgnore.indexOf('connecting') === -1) { logger.event('connecting'); }
+        if (options.options.debugIgnore.indexOf('connecting') < 0) { logger.event('connecting'); }
     	client.emit('connecting', host, port);
         callback();
     });
@@ -55,7 +55,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
         this.end();
         this.destroy();
         if (!silent) {
-            if (options.options.debugIgnore.indexOf('disconnected') === -1) {
+            if (options.options.debugIgnore.indexOf('disconnected') < 0) {
                 logger.event('disconnected');
             }
             client.emit('disconnected', errors.get('ECONNABORTED'));
@@ -69,7 +69,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     // Encounter an error, emit disconnected event with the error message and reconnect to server.
     socket.on('error', function(err) {
     	logger.error(errors.get(err.code));
-        if (options.options.debugIgnore.indexOf('disconnected') === -1) { logger.event('disconnected'); }
+        if (options.options.debugIgnore.indexOf('disconnected') < 0) { logger.event('disconnected'); }
     	client.emit('disconnected', errors.get(err.code));
         var connection = options.connection || {};
     	var reconnect = connection.reconnect || true;
@@ -82,9 +82,9 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
             retry++;
             var interval = 5000*retry;
             if (interval >= 90000) { interval = 90000; }
-            if (options.options.debugIgnore.indexOf('reconnect') === -1) { logger.info('reconnecting in '+(interval/1000)+' seconds..'); }
+            if (options.options.debugIgnore.indexOf('reconnect') < 0) { logger.info('reconnecting in '+(interval/1000)+' seconds..'); }
 	    	setTimeout(function(){
-                if (options.options.debugIgnore.indexOf('reconnect') === -1) { logger.event('reconnect'); }
+                if (options.options.debugIgnore.indexOf('reconnect') < 0) { logger.event('reconnect'); }
 	    		client.emit('reconnect');
 	    		if (connection.retries !== -1) { connection.retries--; }
 	    		client.connect();
@@ -93,7 +93,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     	
     	// Couldn't reconnect to server after X retries, emit connectfail event.
     	if (reconnect && connection.retries === 0) {
-            if (options.options.debugIgnore.indexOf('connectfail') === -1) { logger.event('connectfail'); }
+            if (options.options.debugIgnore.indexOf('connectfail') < 0) { logger.event('connectfail'); }
             client.emit('connectfail');
         }
     });

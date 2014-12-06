@@ -26,6 +26,13 @@ var Client      = require('../client');
 var Request     = require('request');
 var Querystring = require('querystring');
 
+/**
+ * Sends a request to the Twitch API.
+ *
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API#using-the-twitch-api
+ *
+ * @type {{twitch: twitch}}
+ */
 module.exports = {
     twitch: function (channel, method, path, options, callback) {
         var self = this;
@@ -34,16 +41,11 @@ module.exports = {
         channel = channel.replace('#', '');
         method = typeof method !== 'undefined' ? method : 'GET';
         options = typeof options !== 'undefined' ? options : {};
+        path = typeof path === 'string' ? path : '';
 
         var Database = Client.getDatabase();
         var collection = Database.collection('tokens');
         var token = '';
-
-        path = typeof path === 'string' ? path : '';
-        if (typeof options === 'function') {
-            callback = options;
-            options = {};
-        }
 
         callback = typeof callback === 'function' ? callback : function () {};
 
@@ -67,15 +69,11 @@ module.exports = {
         }
 
         Request(requestOptions, function (error, response, body) {
-            if (error) {
-                return callback.call(self, error);
-            }
-            try {
-                body = JSON.parse(body);
-            }
-            catch (error) {
-                return callback.call(self, error);
-            }
+            if (error) { return callback.call(self, error); }
+
+            try { body = JSON.parse(body); }
+            catch (error) { return callback.call(self, error); }
+
             return callback.call(self, null, response.statusCode, body);
         });
 

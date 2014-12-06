@@ -25,6 +25,8 @@
 /**
  * Percentage of a string that is uppercase.
  *
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#uppercase
+ *
  * @type {{utils: {uppercase: uppercase}}}
  */
 module.exports = {

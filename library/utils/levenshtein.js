@@ -25,6 +25,8 @@
 /**
  * The levenshtein distance is a string metric for measuring the difference between two sequences.
  *
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#levenshtein
+ *
  * @type {{utils: {levenshtein: levenshtein}}}
  */
 module.exports = {

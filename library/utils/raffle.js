@@ -25,6 +25,8 @@
 /**
  * Simple raffle manager.
  *
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#raffle
+ *
  * @type {{utils: {raffle: {enter: enter, pick: pick, reset: reset, count: count, isParticipating: isParticipating}}}}
  */
 var channels = {};

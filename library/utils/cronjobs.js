@@ -23,11 +23,13 @@
  */
 
 /**
- * Create, start or stop cronjobs.
+ * Cronjobs management.
+ *
+ * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#cronjobs
  *
  * @type {{cronjobs: cron}}
  */
-var Cron     = require('cron').CronJob;
+var Cron = require('cron').CronJob;
 
 module.exports = {
     cronjobs: function cron(time, fn) {
