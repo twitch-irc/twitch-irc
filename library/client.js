@@ -630,7 +630,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
                 Data.createTempUserData(username);
                 if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && message.params[0].replace('#', '').toLowerCase() !== username) {
-                    Data.tempUserData[username].special.push('moderator');
+                    Data.tempUserData[username].special.push('mod');
                 }
                 if (message.params[0].replace('#', '').toLowerCase() === username) {
                     Data.tempUserData[username].special.push('broadcaster');
