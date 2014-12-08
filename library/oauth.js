@@ -41,6 +41,7 @@ var DBPath   = './database';
  * @returns {exports}
  */
 module.exports = function(config) {
+    var config = config || {};
     var useOAuth = (typeof config.oauth != 'undefined') ? config.oauth : false;
     if (useOAuth) {
         this.options = config || {};

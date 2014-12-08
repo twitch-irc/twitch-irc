@@ -31,6 +31,7 @@ var Directory = require('mkdirp');
  * @returns {exports}
  */
 module.exports = function(config) {
+    var config  = config || {};
 	var options = config.options || {};
 
 	var debug = options.debug || false;

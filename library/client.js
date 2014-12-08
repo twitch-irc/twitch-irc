@@ -80,7 +80,7 @@ var client = function client(options) {
     this.logger = require('./logger')(options);
     this.oauth = require('./oauth')(options);
     this.options = (typeof options != 'undefined') ? options : {};
-    options.options = options.options || {};
+    this.options.options = this.options.options || {};
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
@@ -637,8 +637,10 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 }
                 Data.createChannelUserData(message.params[0], username, function(done) {
                     if (String(message.params[1]).startsWith('\u0001ACTION')) {
-                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001'));
+                        if (self.debugIgnore.indexOf('action') < 0) { self.logger.event('action'); }
+                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                     } else {
+                        if (self.debugIgnore.indexOf('chat') < 0) { self.logger.event('chat'); }
                         self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                     }
                 });
