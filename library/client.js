@@ -41,6 +41,31 @@ var Server   = 'irc.twitch.tv';
 var Port     = 443;
 var Channels = [];
 
+function versionCompare(v1, v2, options) {
+    var lexicographical = options && options.lexicographical;
+    var zeroExtend = options && options.zeroExtend;
+    var v1parts = v1.split('.');
+    var v2parts = v2.split('.');
+
+    function isValidPart(x) { return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x); }
+    if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) { return NaN; }
+    if (zeroExtend) {
+        while (v1parts.length < v2parts.length) v1parts.push("0");
+        while (v2parts.length < v1parts.length) v2parts.push("0");
+    }
+    if (!lexicographical) {
+        v1parts = v1parts.map(Number);
+        v2parts = v2parts.map(Number);
+    }
+    for (var i = 0; i < v1parts.length; ++i) {
+        if (v2parts.length == i) { return 1; }
+        if (v1parts[i] == v2parts[i]) { continue; }
+        else if (v1parts[i] > v2parts[i]) { return 1; }
+        else { return -1; }
+    }
+    if (v1parts.length != v2parts.length) { return -1; }
+    return 0;
+}
 /**
  * Represents a new IRC client.
  *
@@ -55,6 +80,7 @@ var client = function client(options) {
     this.logger = require('./logger')(options);
     this.oauth = require('./oauth')(options);
     this.options = (typeof options != 'undefined') ? options : {};
+    options.options = options.options || {};
     this.debugIgnore = this.options.options.debugIgnore || [];
     this.stream = Stream().on('data', this._handleMessage.bind(this));
     this.socket = null;
@@ -68,7 +94,7 @@ var client = function client(options) {
     if (checkUpdates) {
         Request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
             if (!err && res.statusCode == 200) {
-                if (JSON.parse(body).version > Package.version) {
+                if (versionCompare(JSON.parse(body).version, Package.version) >= 1) {
                     console.log(Chalk.yellow('?')+' A new update is available for twitch-irc: ' + Chalk.green.bold(JSON.parse(body).version) + Chalk.dim(' (current: ' + Package.version + ')'));
                 }
             }
@@ -174,7 +200,12 @@ client.prototype._handleMessage = function _handleMessage(message) {
             self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
 
             var timer = 0;
-            var channels = self.options.channels || [];
+            var channels = [];
+            if (Channels.length >= 1) {
+                channels = Channels;
+            } else {
+                channels = self.options.channels || [];
+            }
             channels.forEach(function(channel) {
                 setTimeout(function(){self.join(channel);}, timer);
                 timer = timer+3000;
@@ -191,8 +222,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             if (self.debugIgnore.indexOf('join') < 0) { self.logger.event('join'); }
             if (!self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
-            Channels.push(message.params[0].replace('#', '').toLowerCase());
-            Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+            
+            if (Channels.indexOf(message.params[0].replace('#', '').toLowerCase()) < 0) {
+                Channels.push(message.params[0].replace('#', '').toLowerCase());
+                Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+            }
             self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
             break;
 

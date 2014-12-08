@@ -39,6 +39,7 @@ var retry = 1;
  * @returns {*}
  */
 var createSocket = function createSocket(client, options, logger, port, host, callback) {
+    options.options.debugIgnore = options.options.debugIgnore || [];
     var socket = net.connect(port, host, function() {
         if (options.options.debugIgnore.indexOf('connecting') < 0) { logger.event('connecting'); }
     	client.emit('connecting', host, port);
