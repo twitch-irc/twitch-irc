@@ -633,7 +633,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     Data.tempUserData[username].special.push('moderator');
                 }
                 if (message.params[0].replace('#', '').toLowerCase() === username) {
-                    Data.tempUserData[username].special.push('moderator');
                     Data.tempUserData[username].special.push('broadcaster');
                 }
                 Data.createChannelUserData(message.params[0], username, function(done) {
