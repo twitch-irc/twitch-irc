@@ -6,16 +6,22 @@ Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the
 
 ## Installing the library
 
-Either add the library as a dependency in your ``package.json`` or install the library globally:
+Add the library as a dependency in your ``package.json`` and type:
 
 ```bash
-$ npm install -g twitch-irc
+$ npm install
+```
+
+Or install the library locally:
+
+```bash
+$ npm install twitch-irc
 ```
 
 Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.1.1b) ?
 
 ```bash
-$ npm install -g twitch-irc@beta
+$ npm install twitch-irc@beta
 ```
 
 ## Configuration
