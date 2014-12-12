@@ -20,26 +20,26 @@ $ npm install -g twitch-irc@beta
 
 ## Configuration
 
-``options``:
+``options``: (Optional)
 - ``checkUpdates``: {Boolean} Check for updates. (Default is true)
-- ``data``: {String} Path to the database directory. (Default is ./database)
+- ``data``: {String} Path to the database directory. (Default is './database')
 - ``debug``: {Boolean} Show debug messages in the console. (Default is false)
-- ``debugIgnore``: {Array} Ignore some events when debugging.
+- ``debugIgnore``: {Array} Ignore some events when debugging. (Default is empty)
 - ``logging``: {Boolean} Logs the console to file. (Default is false)
 - ``tc``: {Integer} Your TWITCHCLIENT number. (Default is 3)
 
-``connection``:
-- ``retries``: {Integer} Maximum retries when trying to connect to server.
-- ``reconnect``: {Boolean} Reconnect to server upon disconnection.
+``connection``: (Optional)
+- ``retries``: {Integer} Maximum retries when trying to connect to server. (Default is infinite)
+- ``reconnect``: {Boolean} Reconnect to server upon disconnection. (Default is true)
 - ``preferredServer``: {String} Connect to the specified server instead. (Optional)
-- ``preferredPort``: {Integer} Port of the preferred server.
-- ``serverType``: {String} Connect to a random server type. Types are chat, events and groups. (Default is chat)
+- ``preferredPort``: {Integer} Port of the preferred server. (Optional)
+- ``serverType``: {String} Connect to a random server type. Types are chat, events and groups. (Default is 'chat')
 
-``identity``:
+``identity``: (Optional)
 - ``username``: {String} Username of your bot. (Optional)
-- ``password``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
+- ``password``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one. (Optional)
 
-``channels``: {Array} List of channels to join when connected to server.
+``channels``: {Array} List of channels to join when connected to server. (Optional, default is empty)
 
 ## How it works
 
