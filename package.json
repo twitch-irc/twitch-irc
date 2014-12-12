@@ -1,13 +1,20 @@
 {
   "name": "twitch-irc",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Twitch IRC library for NodeJS.",
   "keywords": [
     "irc",
     "twitch",
     "bot",
     "lib",
-    "library"
+    "library",
+    "stream",
+    "live",
+    "robot",
+    "twitchtv",
+    "twitch.tv",
+    "node",
+    "iojs"
   ],
   "repository": {
     "type": "git",
@@ -29,12 +36,25 @@
   ],
   "main": "./index",
   "dependencies": {
-    "irc-message-stream": "^1.1.0",
-    "mkdirp": "^0.5.0",
-    "readable-stream": "^1.0.27-1",
-    "string": "^1.9.0",
-    "winston": "^0.7.3",
-    "locallydb": "*"
+    "irc-message-stream": "latest",
+    "mkdirp": "latest",
+    "readable-stream": "latest",
+    "string": "latest",
+    "winston": "latest",
+    "locallydb": "latest",
+    "q": "latest",
+    "request": "latest",
+    "chalk": "latest",
+    "cron": "latest",
+    "promise": "latest",
+    "express": "latest",
+    "body-parser": "latest",
+    "method-override": "latest",
+    "passport": "latest",
+    "passport-twitch": "latest",
+    "express-session": "latest",
+    "ejs": "latest",
+    "querystring": "latest"
   },
   "devDependencies": {
     "vows": "0.6.x"

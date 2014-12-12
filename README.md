@@ -1,12 +1,8 @@
 # twitch-irc
-[![Build Status](https://secure.travis-ci.org/Schmoopiie/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc)
+[![Build Status](https://secure.travis-ci.org/Schmoopiie/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc) [![Downloads](http://img.shields.io/npm/dm/twitch-irc.svg)](https://www.npmjs.org/package/twitch-irc) [![Npm Version](http://img.shields.io/npm/v/twitch-irc.svg)](https://www.npmjs.org/package/twitch-irc) [![Issues](http://img.shields.io/github/issues/schmoopiie/twitch-irc.svg)](https://github.com/Schmoopiie/twitch-irc/issues)
 
 ![](http://i.imgur.com/7PMEvN5.png)
 Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the U.S. and/or other countries. "Twitch-IRC" is not operated by, sponsored by, or affiliated with Twitch Interactive, Inc. in any way.
-
-## Generator
-
-If you wish to save time developing your bot, you might want to check [generator-twitch-irc](https://github.com/Schmoopiie/generator-twitch-irc)!
 
 ## Installing the library
 
@@ -16,9 +12,16 @@ Either add the library as a dependency in your ``package.json`` or install the l
 $ npm install -g twitch-irc
 ```
 
+Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.0.6b) ?
+
+```bash
+$ npm install -g twitch-irc@beta
+```
+
 ## Configuration
 
 ``options``:
+- ``checkUpdates``: {Boolean} Check for updates. (Default is true)
 - ``debug``: {Boolean} Show debug messages in the console. (Default is false)
 - ``debugIgnore``: {Array} Ignore some events when debugging.
 - ``logging``: {Boolean} Logs the console to file. (Default is false)
@@ -33,7 +36,7 @@ $ npm install -g twitch-irc
 
 ``identity``:
 - ``username``: {String} Username of your bot. (Optional)
-- ``passpord``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
+- ``password``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one.
 
 ``channels``: {Array} List of channels to join when connected to server.
 
@@ -113,27 +116,23 @@ client.addListener "chat", (channel, user, message) ->
   return
 ```
 
-## Events
+## Features
 
-This is what makes this library unique. Twitch-IRC allows you to listen to multiple events at the same time.
-
-[Click here for the events documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Events).
-
-## Commands
-
-You can use each and every Twitch commands.
-
-[Click here for the commands documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Commands).
-
-## Database
-
-Create collections and interact with them like any database management system.
-
-[Click here for the database documentation](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
+- [Database management system](https://github.com/Schmoopiie/twitch-irc/wiki/Database).
+- [Functions to make your life easier](https://github.com/Schmoopiie/twitch-irc/wiki/Utils).
+- Gracefully reconnects to server.
+- Supports IRCv3 tags.
+- [Supports all Twitch events](https://github.com/Schmoopiie/twitch-irc/wiki/Events).
+- [Supports all Twitch commands](https://github.com/Schmoopiie/twitch-irc/wiki/Commands).
+- [Supports all Twitch API endpoints and OAuth 2.0](https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API).
 
 ## Contributing Guidelines
 
 Please review the [guidelines for contributing](https://github.com/Schmoopiie/twitch-irc/wiki/Contributing) to this repository.
+
+## Support
+
+You can contact me on Twitter [@Schmoopiie](https://twitter.com/Schmoopiie/) or [create an issue](https://github.com/Schmoopiie/twitch-irc/issues/new).
 
 ## License
 
