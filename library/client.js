@@ -719,23 +719,23 @@ client.prototype.connect = function connect() {
     var preferredServer = connection.preferredServer || null;
     var preferredPort = connection.preferredPort || null;
     var serverType = connection.serverType || 'chat';
-    var host = Servers.getServer(serverType, preferredServer, preferredPort);
+    Servers.getServer(serverType, preferredServer, preferredPort, function(server){
+        var authenticate = function authenticate() {
+            var identity = self.options.identity || {};
+            var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
+            var password = identity.password || 'SCHMOOPIIE';
 
-    var authenticate = function authenticate() {
-        var identity = self.options.identity || {};
-        var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
-        var password = identity.password || 'SCHMOOPIIE';
+            if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
+            self.emit('logon');
 
-        if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
-        self.emit('logon');
+            self.socket.crlfWrite('PASS '+password);
+            self.socket.crlfWrite('NICK %s', nickname);
+            self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
+        };
+        self.socket = Socket(self, self.options, self.logger, server.split(':')[1], server.split(':')[0], authenticate);
 
-        self.socket.crlfWrite('PASS '+password);
-        self.socket.crlfWrite('NICK %s', nickname);
-        self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
-    };
-    self.socket = Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
-
-    self.socket.pipe(self.stream);
+        self.socket.pipe(self.stream);
+    });
 };
 
 client.prototype.fastReconnect = function fastReconnect() {
@@ -750,32 +750,32 @@ client.prototype.fastReconnect = function fastReconnect() {
     var connection = self.options.connection || {};
 
     var serverType = connection.serverType || 'chat';
-    var host = Servers.getServer(serverType, Server, Port);
+    Servers.getServer(serverType, Server, Port, function(server) {
+        var authenticate = function authenticate() {
+            var identity = self.options.identity || {};
+            var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
+            var password = identity.password || 'SCHMOOPIIE';
 
-    var authenticate = function authenticate() {
-        var identity = self.options.identity || {};
-        var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
-        var password = identity.password || 'SCHMOOPIIE';
+            if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
+            self.emit('logon');
 
-        if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
-        self.emit('logon');
-
-        self.socket.crlfWrite('PASS '+password);
-        self.socket.crlfWrite('NICK %s', nickname);
-        self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
-    };
-    var oldSocket = self.socket;
-    setTimeout(function(){
-        oldSocket.unpipe();
-        oldSocket.forceDisconnect(true);
-        if (self.debugIgnore.indexOf('info') < 0) {
-            self.logger.info('dropped your old connection, will resume with the new one.');
-        }
-        self.gracefulReconnection = false;
-        self.socket.pipe(self.stream);
-    },25000);
-    self.socket = new Socket(self, self.options, self.logger, host.split(':')[1], host.split(':')[0], authenticate);
-    self.socket.pipe(Stream().on('data', self._fastReconnectMessage.bind(self)));
+            self.socket.crlfWrite('PASS '+password);
+            self.socket.crlfWrite('NICK %s', nickname);
+            self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
+        };
+        var oldSocket = self.socket;
+        setTimeout(function(){
+            oldSocket.unpipe();
+            oldSocket.forceDisconnect(true);
+            if (self.debugIgnore.indexOf('info') < 0) {
+                self.logger.info('dropped your old connection, will resume with the new one.');
+            }
+            self.gracefulReconnection = false;
+            self.socket.pipe(self.stream);
+        },25000);
+        self.socket = new Socket(self, self.options, self.logger, server.split(':')[1], server.split(':')[0], authenticate);
+        self.socket.pipe(Stream().on('data', self._fastReconnectMessage.bind(self)));
+    });
 };
 
 client.prototype.disconnect = function disconnect() {

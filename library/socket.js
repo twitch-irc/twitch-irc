@@ -22,11 +22,11 @@
  * THE SOFTWARE.
  */
 
-var util = require('util');
-var net = require('net');
+var util   = require('util');
+var net    = require('net');
 var errors = require('./errors');
 
-var retry = 1;
+var retry  = 1;
 
 /**
  * Create a new socket for connection and handle any errors related to the connection.
