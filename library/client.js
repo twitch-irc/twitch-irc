@@ -279,6 +279,10 @@ client.prototype._handleMessage = function _handleMessage(message) {
             }
             break;
 
+        case 'RECONNECT':
+            self.fastReconnect();
+            break;
+
         // Received message.
         case 'PRIVMSG':
             /**
@@ -737,7 +741,9 @@ client.prototype.connect = function connect() {
 client.prototype.fastReconnect = function fastReconnect() {
     var self = this;
 
-    self.logger.event('gracefully reconnecting to twitch..');
+    if (self.debugIgnore.indexOf('info') < 0) {
+        self.logger.info('reconnect request received from twitch.');
+    }
 
     self.gracefulReconnection = true;
 
@@ -762,7 +768,9 @@ client.prototype.fastReconnect = function fastReconnect() {
     setTimeout(function(){
         oldSocket.unpipe();
         oldSocket.forceDisconnect(true);
-        self.logger.event('old connection to twitch dropped.');
+        if (self.debugIgnore.indexOf('info') < 0) {
+            self.logger.info('dropped your old connection, will resume with the new one.');
+        }
         self.gracefulReconnection = false;
         self.socket.pipe(self.stream);
     },25000);
@@ -773,6 +781,8 @@ client.prototype.fastReconnect = function fastReconnect() {
 client.prototype.disconnect = function disconnect() {
     this.socket.forceDisconnect(false);
 };
+
+client.prototype.clearChannels = function clearChannels() { Channels = []; };
 
 /**
  * Join a channel.

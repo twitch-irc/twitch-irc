@@ -83,7 +83,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
             retry++;
             var interval = 5000*retry;
             if (interval >= 90000) { interval = 90000; }
-            if (options.options.debugIgnore.indexOf('reconnect') < 0) { logger.info('reconnecting in '+(interval/1000)+' seconds..'); }
+            if (options.options.debugIgnore.indexOf('info') < 0) { logger.info('unable to connect to chat, reconnecting in '+(interval/1000)+' seconds.'); }
 	    	setTimeout(function(){
                 if (options.options.debugIgnore.indexOf('reconnect') < 0) { logger.event('reconnect'); }
 	    		client.emit('reconnect');
