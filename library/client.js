@@ -68,6 +68,7 @@ function versionCompare(v1, v2, options) {
     if (v1parts.length != v2parts.length) { return -1; }
     return 0;
 }
+
 /**
  * Represents a new IRC client.
  *
