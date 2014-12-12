@@ -41,6 +41,8 @@ var Server   = 'irc.twitch.tv';
 var Port     = 443;
 var Channels = [];
 
+var Joined   = false;
+
 function versionCompare(v1, v2, options) {
     var lexicographical = options && options.lexicographical;
     var zeroExtend = options && options.zeroExtend;
@@ -201,7 +203,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
             var timer = 0;
             var channels = [];
-            if (Channels.length >= 1) {
+            if (Channels.length >= 1 && Joined) {
                 channels = Channels;
             } else {
                 channels = self.options.channels || [];
@@ -228,6 +230,12 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             }
             self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            if (self.options.channels.length >= 1 && message.params[0].toLowerCase().replace('#', '') === self.options.channels[self.options.channels.length-1].toLowerCase().replace('#', '')) {
+                Joined = true;
+            }
+            if (self.options.channels.length <= 0) {
+                Joined = true;
+            }
             break;
 
         case 'PART':
