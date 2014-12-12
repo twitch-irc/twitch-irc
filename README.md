@@ -12,7 +12,7 @@ Either add the library as a dependency in your ``package.json`` or install the l
 $ npm install -g twitch-irc
 ```
 
-Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.0.6b) ?
+Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.1.1b) ?
 
 ```bash
 $ npm install -g twitch-irc@beta
