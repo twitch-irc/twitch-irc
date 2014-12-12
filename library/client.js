@@ -80,10 +80,6 @@ var client = function client(options) {
 
     Events.EventEmitter.call(this);
 
-    if (typeof(options.options === 'undefined')) {
-        options.options = {};
-    }
-
     this.logger = require('./logger')(options);
     this.oauth = require('./oauth')(options);
     this.options = (typeof options != 'undefined') ? options : {};
