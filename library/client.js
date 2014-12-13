@@ -759,7 +759,7 @@ client.prototype.fastReconnect = function fastReconnect() {
     var connection = self.options.connection || {};
 
     var serverType = connection.serverType || 'chat';
-    Servers.getServer(serverType, Server, Port, options, self.debugIgnore, self.logger, function(server) {
+    Servers.getServer(serverType, Server, Port, self.debugIgnore, self.logger, function(server) {
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
