@@ -728,7 +728,7 @@ client.prototype.connect = function connect() {
     var preferredServer = connection.preferredServer || null;
     var preferredPort = connection.preferredPort || null;
     var serverType = connection.serverType || 'chat';
-    Servers.getServer(serverType, preferredServer, preferredPort, function(server){
+    Servers.getServer(serverType, preferredServer, preferredPort, self.debugIgnore, self.logger, function(server){
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
@@ -759,7 +759,7 @@ client.prototype.fastReconnect = function fastReconnect() {
     var connection = self.options.connection || {};
 
     var serverType = connection.serverType || 'chat';
-    Servers.getServer(serverType, Server, Port, function(server) {
+    Servers.getServer(serverType, Server, Port, options, self.debugIgnore, self.logger, function(server) {
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);

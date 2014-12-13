@@ -200,7 +200,7 @@ var serverList = {
  * @param port
  * @returns {string}
  */
-var getServer = function getServer(type, server, port, cb) {
+var getServer = function getServer(type, server, port, debugIgnore, logger, cb) {
     var serverType = type || 'chat';
     var serverAddress = server || null;
     var serverPort = port || 443;
@@ -222,14 +222,22 @@ var getServer = function getServer(type, server, port, cb) {
 
         function findServer(cb) {
             function scan() {
-                var serverAddr = serverList[serverType][serverPort][Math.floor(Math.random() * (serverList[serverType][serverPort].length - 1))];
+                var serverAddr = serverList[serverType][serverPort][Math.floor(Math.random() * (serverList[serverType][serverPort].length))];
                 if (unavailable.indexOf(serverAddr) >= 0) {
                     scan();
                 } else {
                     probe(serverAddr, serverPort, function (err, available) {
                         if (!available || err) {
                             unavailable.push(serverAddr);
-                            return scan();
+                            if (unavailable.length > serverList[serverType][serverPort].length-1) {
+                                unavailable = [];
+                                if (debugIgnore.indexOf('error') < 0) { logger.error('unable to find a twitch server, retrying in 60 seconds..'); }
+                                setTimeout(function(){
+                                    scan();
+                                }, 60000);
+                            } else {
+                                return scan();
+                            }
                         } else {
                             unavailable = [];
                             return cb(serverAddr);
@@ -238,6 +246,10 @@ var getServer = function getServer(type, server, port, cb) {
                 }
             }
             scan();
+        }
+
+        if (debugIgnore.indexOf('info') < 0) {
+            logger.info('searching for a twitch server..');
         }
 
         findServer(function(server) {
