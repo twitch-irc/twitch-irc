@@ -36,7 +36,8 @@ var Database = null;
 var DBPath   = './database';
 
 /**
- * Customizing the logger for a better understanding of what's going on.
+ * Create a webserver and handle OAuth 2.0 for Twitch.
+ *
  * @param config
  * @returns {exports}
  */
