@@ -37,7 +37,6 @@
   "main": "./index",
   "dependencies": {
     "irc-message-stream": "latest",
-    "mkdirp": "latest",
     "readable-stream": "latest",
     "string": "latest",
     "locallydb": "latest",
