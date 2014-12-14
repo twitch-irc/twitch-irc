@@ -22,14 +22,15 @@
  * THE SOFTWARE.
  */
 
-var util   = require('util');
-var net    = require('net');
-var errors = require('./errors');
+var Errors  = require('./errors');
+var Net     = require('net');
+var Util    = require('util');
 
-var retry  = 1;
+var Retries = 1;
 
 /**
- * Create a new socket for connection and handle any errors related to the connection.
+ * Create a new socket connection and handle socket errors.
+ *
  * @param client
  * @param options
  * @param logger
@@ -39,15 +40,14 @@ var retry  = 1;
  * @returns {*}
  */
 var createSocket = function createSocket(client, options, logger, port, host, callback) {
-    options.options.debugIgnore = options.options.debugIgnore || [];
-    var socket = net.connect(port, host, function() {
-        if (options.options.debugIgnore.indexOf('connecting') < 0) { logger.event('connecting'); }
+    var socket = Net.connect(port, host, function() {
+        logger.event('connecting');
     	client.emit('connecting', host, port);
         callback();
     });
 
     socket.crlfWrite = function(data) {
-        var string = util.format.apply(this, arguments);
+        var string = Util.format.apply(this, arguments);
         this.write(string + '\r\n');
     };
 
@@ -55,46 +55,44 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
         silent = typeof silent !== 'undefined' ? silent : false;
         this.end();
         this.destroy();
+
         if (!silent) {
-            if (options.options.debugIgnore.indexOf('disconnected') < 0) {
-                logger.event('disconnected');
-            }
-            client.emit('disconnected', errors.get('ECONNABORTED'));
+            logger.event('disconnected');
+            client.emit('disconnected', Errors.get('ECONNABORTED'));
         }
     };
 
     socket.resetRetry = function() {
-        retry = 1;
+        Retries = 1;
     };
-    
-    // Encounter an error, emit disconnected event with the error message and reconnect to server.
+
     socket.on('error', function(err) {
-    	logger.error(errors.get(err.code));
-        if (options.options.debugIgnore.indexOf('disconnected') < 0) { logger.event('disconnected'); }
-    	client.emit('disconnected', errors.get(err.code));
+    	logger.error(Errors.get(err.code));
+        logger.event('disconnected');
+    	client.emit('disconnected', Errors.get(err.code));
+
         var connection = options.connection || {};
     	var reconnect = connection.reconnect || true;
-    	
-    	// Set the default for replies to -1 for infinite.
+
     	if (connection.retries === undefined) { connection.retries = -1; }
-    	
-    	// Try to reconnect.
     	if (reconnect && (connection.retries >= 1 || connection.retries === -1)) {
-            retry++;
-            var interval = 5000*retry;
+            Retries++;
+            var interval = 5000*Retries;
             if (interval >= 90000) { interval = 90000; }
-            if (options.options.debugIgnore.indexOf('info') < 0) { logger.info('unable to connect to chat, reconnecting in '+(interval/1000)+' seconds.'); }
+
+            logger.info('Reconnecting in ' + (interval/1000) + ' seconds..');
+
 	    	setTimeout(function(){
-                if (options.options.debugIgnore.indexOf('reconnect') < 0) { logger.event('reconnect'); }
+                logger.event('reconnect');
 	    		client.emit('reconnect');
+
 	    		if (connection.retries !== -1) { connection.retries--; }
 	    		client.connect();
 	    	}, interval);
     	}
-    	
-    	// Couldn't reconnect to server after X retries, emit connectfail event.
+
     	if (reconnect && connection.retries === 0) {
-            if (options.options.debugIgnore.indexOf('connectfail') < 0) { logger.event('connectfail'); }
+            logger.event('connectfail');
             client.emit('connectfail');
         }
     });

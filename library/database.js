@@ -42,7 +42,7 @@ module.exports = {
          * @params {object} elements
          */
         insert: function insert(collection, elements) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             collection.insert(elements);
             collection.save();
@@ -56,7 +56,7 @@ module.exports = {
          * @params {query} query
          */
         where: function where(collection, query) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             deferredWhere.resolve(collection.where(query));
             return deferredWhere.promise;
@@ -68,7 +68,7 @@ module.exports = {
          * @params {integer} cid
          */
         get: function get(collection, cid) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             if (collection.get(cid) === undefined) {
                 deferredGet.reject('Cannot retrieve the cid.');
@@ -83,7 +83,7 @@ module.exports = {
          * @params {string} collection
          */
         list: function list(collection) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             deferredList.resolve(collection.items);
             return deferredList.promise;
@@ -96,7 +96,7 @@ module.exports = {
          * @params {object} object
          */
         update: function update(collection, cid, object) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             if (collection.update(cid, object)) {
                 collection.save();
@@ -114,7 +114,7 @@ module.exports = {
          * @params {object} object
          */
         replace: function replace(collection, cid, object) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             if (collection.replace(cid, object)) {
                 collection.save();
@@ -131,7 +131,7 @@ module.exports = {
          * @params {integer} cid
          */
         remove: function remove(collection, cid) {
-            var Database = Client.getDatabase();
+            var Database   = Client.getDatabase();
             var collection = Database.collection(collection);
             if (collection.remove(cid)) {
                 collection.save();
@@ -140,7 +140,6 @@ module.exports = {
                 deferredRemove.reject('Cannot retrieve the cid.');
             }
             return deferredRemove.promise;
-            return true;
         }
     }
 };

@@ -39,13 +39,13 @@ module.exports = {
 
         channel = typeof channel !== 'undefined' ? channel : 'no_channel_specified';
         channel = channel.replace('#', '');
-        method = typeof method !== 'undefined' ? method : 'GET';
+        method  = typeof method !== 'undefined' ? method : 'GET';
         options = typeof options !== 'undefined' ? options : {};
-        path = typeof path === 'string' ? path : '';
+        path    = typeof path === 'string' ? path : '';
 
-        var Database = Client.getDatabase();
+        var Database   = Client.getDatabase();
         var collection = Database.collection('tokens');
-        var token = '';
+        var token      = '';
 
         callback = typeof callback === 'function' ? callback : function () {};
 
@@ -58,15 +58,13 @@ module.exports = {
         var requestOptions = {
             url: 'https://api.twitch.tv/kraken' + path + (options ? '?' + options : ''),
             headers: {
-                'Accept': 'application/vnd.twitchtv.v3+json',
+                'Accept':    'application/vnd.twitchtv.v3+json',
                 'Client-ID': ''
             },
             method: method
         };
 
-        if (token !== '') {
-            requestOptions.headers['Authorization'] = 'OAuth ' + token;
-        }
+        if (token !== '') { requestOptions.headers['Authorization'] = 'OAuth ' + token; }
 
         Request(requestOptions, function (error, response, body) {
             if (error) { return callback.call(self, error); }

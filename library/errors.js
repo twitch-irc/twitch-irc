@@ -22,28 +22,34 @@
  * THE SOFTWARE.
  */
 
+/**
+ * Explain in better words what is happening when getting
+ * disconnected from server.
+ */
 var errors = (function() {
-     var private = {
-         'EADDRINUSE': 'Address already in use',
-         'EADDRNOTAVAIL': 'Cannot assign requested address',
-         'ENETDOWN': 'Network is down',
-         'ENETUNREACH': 'Network is unreachable',
-         'ENETRESET': 'Network dropped connection because of reset',
-         'ENOTFOUND': 'Cannot get your address informations',
-         'ECONNABORTED': 'Software caused connection abort',
-         'ECONNRESET': 'Connection reset by peer',
-         'ENOBUFS': 'No buffer space available',
-         'ETIMEDOUT': 'Connection timed out',
-         'ECONNREFUSED': 'Connection refused',
-         'EHOSTDOWN': 'Host is down',
-         'EHOSTUNREACH': 'No route to host',
-         'EREMOTEIO': 'Remote I/O error',
-         'ESOCKTNOSUPPORT': 'Socket type not supported',
-         'EPIPE': 'The local end has been shut down on a connection oriented socket.'
-     };
+    var private = {
+        'EADDRINUSE': 'Address already in use.',
+        'EADDRNOTAVAIL': 'Cannot assign requested address.',
+        'ENETDOWN': 'Network is down.',
+        'ENETUNREACH': 'Network is unreachable.',
+        'ENETRESET': 'Network dropped connection because of reset.',
+        'ENOTFOUND': 'Cannot get your address informations.',
+        'ECONNABORTED': 'Software caused connection abort.',
+        'ECONNRESET': 'Connection reset by peer.',
+        'ENOBUFS': 'No buffer space available.',
+        'ETIMEDOUT': 'Connection timed out.',
+        'ECONNREFUSED': 'Connection refused.',
+        'EHOSTDOWN': 'Host is down.',
+        'EHOSTUNREACH': 'No route to host.',
+        'EREMOTEIO': 'Remote I/O error.',
+        'ESOCKTNOSUPPORT': 'Socket type not supported.',
+        'EPIPE': 'The local end has been shut down on a connection oriented socket.'
+    };
 
-     return {
-        get: function(name) { return private[name] || name; }
+    return {
+        get: function(name) {
+            return private[name] || name;
+        }
     };
 })();
 

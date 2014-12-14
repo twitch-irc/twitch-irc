@@ -40,11 +40,9 @@
     "mkdirp": "latest",
     "readable-stream": "latest",
     "string": "latest",
-    "winston": "latest",
     "locallydb": "latest",
     "q": "latest",
     "request": "latest",
-    "chalk": "latest",
     "cron": "latest",
     "promise": "latest",
     "express": "latest",
@@ -55,9 +53,6 @@
     "express-session": "latest",
     "ejs": "latest",
     "querystring": "latest"
-  },
-  "devDependencies": {
-    "vows": "0.6.x"
   },
   "engines": {
     "node": ">=0.10.0"

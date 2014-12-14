@@ -23,7 +23,7 @@
  */
 
 /**
- * Cronjobs management.
+ * Cron jobs management.
  *
  * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#cronjobs
  *

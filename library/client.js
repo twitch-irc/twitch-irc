@@ -22,10 +22,8 @@
  * THE SOFTWARE.
  */
 
-var Chalk    = require('chalk');
 var Data     = require('./data');
 var Events   = require('events');
-var Latency  = new Date();
 var Locally  = require('locallydb');
 var Package  = require('./../package.json');
 var Request  = require('request');
@@ -37,19 +35,29 @@ var Util     = require('util');
 
 var Database = null;
 var DBPath   = './database';
+var Latency  = new Date();
 var Server   = 'irc.twitch.tv';
 var Port     = 443;
 var Channels = [];
 
 var Joined   = false;
 
+/**
+ * Compare two versions.
+ *
+ * @param v1
+ * @param v2
+ * @param options
+ * @returns {*}
+ */
 function versionCompare(v1, v2, options) {
     var lexicographical = options && options.lexicographical;
-    var zeroExtend = options && options.zeroExtend;
-    var v1parts = v1.split('.');
-    var v2parts = v2.split('.');
+    var zeroExtend      = options && options.zeroExtend;
+    var v1parts         = v1.split('.');
+    var v2parts         = v2.split('.');
 
     function isValidPart(x) { return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x); }
+
     if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) { return NaN; }
     if (zeroExtend) {
         while (v1parts.length < v2parts.length) v1parts.push("0");
@@ -70,7 +78,7 @@ function versionCompare(v1, v2, options) {
 }
 
 /**
- * Represents a new IRC client.
+ * Represents a new client instance.
  *
  * @constructor
  * @param {object} options
@@ -80,15 +88,21 @@ var client = function client(options) {
 
     Events.EventEmitter.call(this);
 
-    this.logger = require('./logger')(options);
-    this.oauth = require('./oauth')(options);
-    this.options = (typeof options != 'undefined') ? options : {};
+    var Logger           = require('./modules/logger');
+    this.logger          = new Logger(options);
+    this.oauth           = require('./oauth')(options);
+    this.options         = (typeof options != 'undefined') ? options : {};
     this.options.options = this.options.options || {};
-    this.debugIgnore = this.options.options.debugIgnore || [];
-    this.stream = Stream().on('data', this._handleMessage.bind(this));
-    this.socket = null;
-    this.moderators = {};
+    this.stream          = Stream().on('data', this._handleMessage.bind(this));
+    this.socket          = null;
+    this.moderators      = {};
+
     this.gracefulReconnection = false;
+
+    this.logger.dev('created a new client instance on pid '+process.pid);
+    this.logger.dev('memory rss: '+process.memoryUsage().rss);
+    this.logger.dev('memory heap total: '+process.memoryUsage().heapTotal);
+    this.logger.dev('memory heap used : '+process.memoryUsage().heapUsed);
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
 
@@ -98,22 +112,26 @@ var client = function client(options) {
         Request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
             if (!err && res.statusCode == 200) {
                 if (versionCompare(JSON.parse(body).version, Package.version) >= 1) {
-                    console.log(Chalk.yellow('?')+' A new update is available for twitch-irc: ' + Chalk.green.bold(JSON.parse(body).version) + Chalk.dim(' (current: ' + Package.version + ')'));
+                    console.log('[\x1b[33m!\x1b[39m] A new update is available for twitch-irc: \x1b[32m' + JSON.parse(body).version + '\x1b[39m \x1b[90m(current: ' + Package.version + ')\x1b[39m');
                 }
             }
         });
     }
 
     process.on('uncaughtException', function (err) {
-        if (self.debugIgnore.indexOf('crash') < 0) { self.logger.crash(err.stack); }
+        self.logger.crash(err.stack);
         self.emit('crash', err.message, err.stack);
     });
 };
 
-// Inherit client from EventEmitter.
 Util.inherits(client, Events.EventEmitter);
 
-// Clean an array.
+/**
+ * Remove an item from an array.
+ *
+ * @param deleteValue
+ * @returns {Array}
+ */
 Array.prototype.clean = function(deleteValue) {
     for (var i = 0; i < this.length; i++) {
         if (this[i] == deleteValue) {
@@ -123,6 +141,27 @@ Array.prototype.clean = function(deleteValue) {
     }
     return this;
 };
+
+/**
+ * Make sure there is # at the beginning of the string.
+ *
+ * @param string
+ * @returns {String}
+ */
+function addHash(string) {
+    if (string.substring(0,1) !== '#') {
+        string = '#' + string;
+    }
+    return string;
+}
+
+/**
+ * Remove any # at the beginning of the string.
+ *
+ * @param string
+ * @returns {String}
+ */
+function remHash(string) { return string.replace('#', ''); }
 
 /**
  * Handle all IRC messages.
@@ -159,11 +198,11 @@ Array.prototype.clean = function(deleteValue) {
 client.prototype._handleMessage = function _handleMessage(message) {
     var self = this;
 
-    // Logging RAW messages.
-    if (message.command.match(/^[0-9]+$/g)) { self.logger.raw('%s: %s', message.command, message.params[1]); }
+    if (message.command.match(/^[0-9]+$/g)) { self.logger.raw( message.command+': '+message.params[1]); }
 
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
+
     switch(message.command) {
         case 'PING':
             /**
@@ -171,7 +210,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              *
              * @event ping
              */
-            if (self.debugIgnore.indexOf('ping') < 0) { self.logger.event('ping'); }
+            self.logger.event('ping');
             self.emit('ping');
             self.socket.crlfWrite('PONG');
             break;
@@ -182,7 +221,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              *
              * @event pong
              */
-            if (self.debugIgnore.indexOf('pong') < 0) { self.logger.event('pong'); }
+            self.logger.event('pong');
             self.emit('pong', (((new Date()-Latency)/1000)%60));
             break;
 
@@ -192,23 +231,24 @@ client.prototype._handleMessage = function _handleMessage(message) {
              *
              * @event connected
              */
-            if (self.debugIgnore.indexOf('connected') < 0) { self.logger.event('connected'); }
+            self.logger.event('connected');
             self.emit('connected', self.socket.remoteAddress, self.socket.remotePort);
+
             Server = self.socket.remoteAddress;
-            Port = self.socket.remotePort;
+            Port   = self.socket.remotePort;
+
             self.socket.resetRetry();
 
-            var options = self.options.options || {};
+            var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
+
             self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
 
-            var timer = 0;
+            var timer    = 0;
             var channels = [];
-            if (Channels.length >= 1 && Joined) {
-                channels = Channels;
-            } else {
-                channels = self.options.channels || [];
-            }
+            if (Channels.length >= 1 && Joined) { channels = Channels; }
+            else { channels = self.options.channels || []; }
+
             channels.forEach(function(channel) {
                 setTimeout(function(){self.join(channel);}, timer);
                 timer = timer+3000;
@@ -223,15 +263,15 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} channel
              * @params {string} username
              */
-            if (self.debugIgnore.indexOf('join') < 0) { self.logger.event('join'); }
+            self.logger.event('join');
             if (!self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
-            
-            if (Channels.indexOf(message.params[0].replace('#', '').toLowerCase()) < 0) {
-                Channels.push(message.params[0].replace('#', '').toLowerCase());
+
+            if (Channels.indexOf(remHash(message.params[0]).toLowerCase()) < 0) {
+                Channels.push(remHash(message.params[0]).toLowerCase());
                 Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             }
             self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
-            if (self.options.channels.length >= 1 && message.params[0].toLowerCase().replace('#', '') === self.options.channels[self.options.channels.length-1].toLowerCase().replace('#', '')) {
+            if (self.options.channels.length >= 1 && remHash(message.params[0]).toLowerCase() === remHash(self.options.channels[self.options.channels.length-1]).toLowerCase()) {
                 Joined = true;
             }
             if (self.options.channels.length <= 0) {
@@ -247,14 +287,13 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} channel
              * @params {string} username
              */
-            if (self.debugIgnore.indexOf('part') < 0) { self.logger.event('part'); }
-            if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
+            self.logger.event('part');
             self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
-            var index = Channels.indexOf(message.params[0].replace('#', '').toLowerCase());
-            if (index !== -1) {
-                Channels.splice(index, 1);
-            }
-            // Remove duplicate entries..
+
+            if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
+
+            var index = Channels.indexOf(remHash(message.params[0]).toLowerCase());
+            if (index !== -1) { Channels.splice(index, 1); }
             Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             break;
 
@@ -267,7 +306,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              */
             if (message.prefix === 'tmi.twitch.tv') {
                 if (message.params[1] === 'Login unsuccessful') {
-                    if (self.debugIgnore.indexOf('disconnected') < 0) { self.logger.event('disconnected'); }
+                    self.logger.event('disconnected');
                     self.emit('disconnected', message.params[1]);
                 }
             }
@@ -280,9 +319,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                 } else {
                     var index = self.moderators[message.params[0]].indexOf(message.params[2].toLowerCase());
-                    if (index >= 0) {
-                        self.moderators[message.params[0]].splice(index, 1);
-                    }
+                    if (index >= 0) { self.moderators[message.params[0]].splice(index, 1); }
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                 }
             }
@@ -295,8 +332,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
         // Received message.
         case 'PRIVMSG':
             /**
-             * Received a message from JTV.
-             * JTV sends a lot of messages, this is the goal of this library.. make it simple.
+             * Handling all messages from JTV.
              *
              * @event jtv
              * @params {string} message
@@ -305,7 +341,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.emit('jtv', message.params);
 
                 var username = message.params[1] ? message.params[1].split(' ')[1] : message.params.push('');
-                var value = message.params[1] ? message.params[1].split(' ')[2] : message.params.push('');
+                var value    = message.params[1] ? message.params[1].split(' ')[2] : message.params.push('');
 
                 switch(true) {
                     case (message.params[1] === 'This room is now in subscribers-only mode.'):
@@ -316,7 +352,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {boolean} status
                          */
-                        if (self.debugIgnore.indexOf('subscriber') < 0) { self.logger.event('subscriber'); }
+                        self.logger.event('subscriber');
                         self.emit('subscriber', message.params[0], true);
                         break;
 
@@ -328,7 +364,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {boolean} status
                          */
-                        if (self.debugIgnore.indexOf('subscriber') < 0) { self.logger.event('subscriber'); }
+                        self.logger.event('subscriber');
                         self.emit('subscriber', message.params[0], false);
                         break;
 
@@ -341,9 +377,9 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {boolean} status
                          * @params {string} length
                          */
-                        var parts = message.params[1].split(' ');
+                        var parts  = message.params[1].split(' ');
                         var length = parts[parts.length - 2];
-                        if (self.debugIgnore.indexOf('slowmode') < 0) { self.logger.event('slowmode'); }
+                        self.logger.event('slowmode');
                         self.emit('slowmode', message.params[0], true, length);
                         break;
 
@@ -355,7 +391,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {boolean} status
                          */
-                        if (self.debugIgnore.indexOf('slowmode') < 0) { self.logger.event('slowmode'); }
+                        self.logger.event('slowmode');
                         self.emit('slowmode', message.params[0], false, -1);
                         break;
 
@@ -367,7 +403,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {boolean} status
                          */
-                        if (self.debugIgnore.indexOf('r9kbeta') < 0) { self.logger.event('r9kbeta'); }
+                        self.logger.event('r9kbeta');
                         self.emit('r9kbeta', message.params[0], true);
                         break;
 
@@ -379,7 +415,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {boolean} status
                          */
-                        if (self.debugIgnore.indexOf('r9kbeta') < 0) { self.logger.event('r9kbeta'); }
+                        self.logger.event('r9kbeta');
                         self.emit('r9kbeta', message.params[0], false);
                         break;
 
@@ -393,7 +429,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} viewers count
                          */
                         var parts = message.params[0].split(' ');
-                        if (self.debugIgnore.indexOf('hosted') < 0) { self.logger.event('hosted'); }
+                        self.logger.event('hosted');
                         self.emit('hosted', message.params[0], parts[0], parts[6]);
                         break;
 
@@ -407,9 +443,9 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {array} mods
                          */
                         var parts = message.params[1].split(':');
-                        var mods = parts[1].replace(/,/g, '').split(':').toString().toLowerCase().split(' ');
+                        var mods  = parts[1].replace(/,/g, '').split(':').toString().toLowerCase().split(' ');
                         mods.clean('');
-                        if (self.debugIgnore.indexOf('mods') < 0) { self.logger.event('mods'); }
+                        self.logger.event('mods');
                         self.emit('mods', message.params[0], mods);
                         break;
 
@@ -422,7 +458,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @event limitation
                          * @params {object} err
                          */
-                        if (self.debugIgnore.indexOf('limitation') < 0) { self.logger.event('limitation'); }
+                        self.logger.event('limitation');
                         var code;
                         if (message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.') { code = 'CANNOT_HOST'; }
                         else if (message.params[1] === 'UNAUTHORIZED JOIN') { code = 'CANNOT_HOST'; }
@@ -438,7 +474,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @event permission
                          * @params {object} err
                          */
-                        if (self.debugIgnore.indexOf('permission') < 0) { self.logger.event('permission'); }
+                        self.logger.event('permission');
                         var code;
                         if (message.params[1] === 'You don\'t have permission to do this.') { code = 'NO_PERMISSION'; }
                         else if (String(message.params[1]).contains('Only the owner of this channel can use')) { code = 'OWNER_ONLY'; }
@@ -449,8 +485,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'SPECIALUSER'):
                         /**
                          * SPECIALUSER message by JTV.
-                         * This message contains the status of a user on a channel.
-                         * e.g: turbo, staff, moderator, admin
                          *
                          * @event specialuser
                          * @params {string} username
@@ -464,8 +498,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'USERCOLOR'):
                         /**
                          * USERCOLOR message by JTV.
-                         * This message contains the color of a user on a channel.
-                         * e.g: #ffffff
                          *
                          * @event usercolor
                          * @params {string} username
@@ -479,8 +511,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'EMOTESET'):
                         /**
                          * EMOTESET message by JTV.
-                         * This message contains the emotes of a user on a channel.
-                         * e.g: [23,568,4458]
                          *
                          * @event emoteset
                          * @params {string} username
@@ -494,7 +524,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'CLEARCHAT'):
                         /**
                          * CLEARCHAT message by JTV.
-                         * CLEARCHAT is used when a chat is cleared and when a user gets timed out.
                          *
                          * @event clearchat
                          * @params {string} channel
@@ -504,11 +533,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} username
                          */
                         if (username) {
-                            if (self.debugIgnore.indexOf('timeout') < 0) { self.logger.event('timeout'); }
+                            self.logger.event('timeout');
                             self.emit('timeout', message.params[0], username);
                         }
                         else {
-                            if (self.debugIgnore.indexOf('clearchat') < 0) { self.logger.event('clearchat'); }
+                            self.logger.event('clearchat');
                             self.emit('clearchat', message.params[0]);
                         }
                         break;
@@ -516,8 +545,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'ROOMBAN'):
                         /**
                          * ROOMBAN message by JTV.
-                         * There is no documentation about this from Twitch.
-                         * Will try to figure this out later.
                          *
                          * @event roomban
                          * @params {string} room
@@ -529,8 +556,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'ROOMCHANGED'):
                         /**
                          * ROOMCHANGED message by JTV.
-                         * There is no documentation about this from Twitch.
-                         * Will try to figure this out later.
                          *
                          * @event roomchanged
                          * @params {string} channel
@@ -541,8 +566,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'ROOMDELETED'):
                         /**
                          * ROOMDELETED message by JTV.
-                         * There is no documentation about this from Twitch.
-                         * Will try to figure this out later.
                          *
                          * @event roomdeleted
                          * @params {string} room
@@ -553,8 +576,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'ROOMINVITE'):
                         /**
                          * ROOMINVITE message by JTV.
-                         * There is no documentation about this from Twitch.
-                         * Will try to figure this out later.
                          *
                          * @event roominvite
                          * @params {string} room
@@ -569,7 +590,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     case (message.params[1].split(' ')[0] === 'HOSTTARGET'):
                         /**
                          * HOSTTARGET message by JTV.
-                         * HOSTTARGET is used when a channel starts and ends a hosting.
                          *
                          * @event unhost
                          * @params {string} channel
@@ -581,23 +601,23 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} remains
                          */
                         if (message.params[1].split(' ')[1] === '-') {
-                            if (self.debugIgnore.indexOf('unhost') < 0) { self.logger.event('unhost'); }
+                            self.logger.event('unhost');
                             self.emit('unhost', message.params[0], message.params[1].split(' ')[2]);
                         } else {
-                            if (self.debugIgnore.indexOf('hosting') < 0) { self.logger.event('hosting'); }
+                            self.logger.event('hosting');
                             self.emit('hosting', message.params[0], message.params[1].split(' ')[1], message.params[1].split(' ')[2]);
                         }
                         break;
 
                     default:
-                        //console.log('Unhandled message from JTV: '+message.params[1]);
+                        self.logger.dev('Unhandled message from JTV:');
+                        self.logger.dev(message.params[1]);
                         break;
                 }
             }
 
             /**
              * Received a message from TwitchNotify.
-             * For now, TwitchNotify is only used to send subscription messages.
              *
              * @event twitchnotify
              * @params {string} channel
@@ -615,18 +635,18 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          * @params {string} channel
                          * @params {string} username
                          */
-                        if (self.debugIgnore.indexOf('subscription') < 0) { self.logger.event('subscription'); }
+                        self.logger.event('subscription');
                         self.emit('subscription', message.params[0], message.params[1].split(' ')[0]);
                         break;
                     default:
-                        //console.log('Unhandled message from TwitchNotify: '+message.params[1]);
+                        self.logger.dev('Unhandled message from TwitchNotify:');
+                        self.logger.dev(message.params[1]);
                         break;
                 }
             }
 
             /**
              * Someone has sent a message on a channel.
-             * There are two kinds of messages, regular messages and action messages (/me <message>)
              *
              * @event action
              * @params {string} channel
@@ -642,19 +662,21 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 var username = message.parseHostmaskFromPrefix().nickname.toLowerCase();
 
                 Data.createTempUserData(username);
-                if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && message.params[0].replace('#', '').toLowerCase() !== username) {
+                if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && remHash(message.params[0]).toLowerCase() !== username) {
                     Data.tempUserData[username].special.push('mod');
                 }
-                if (message.params[0].replace('#', '').toLowerCase() === username) {
+                if (remHash(message.params[0]).toLowerCase() === username) {
                     Data.tempUserData[username].special.push('broadcaster');
                 }
                 Data.createChannelUserData(message.params[0], username, function(done) {
                     if (String(message.params[1]).startsWith('\u0001ACTION')) {
-                        if (self.debugIgnore.indexOf('action') < 0) { self.logger.event('action'); }
                         self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                        self.logger.event('action');
+                        self.logger.chat('['+message.params[0]+'] '+username+': '+String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                     } else {
-                        if (self.debugIgnore.indexOf('chat') < 0) { self.logger.event('chat'); }
                         self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
+                        self.logger.event('chat');
+                        self.logger.chat('['+message.params[0]+'] '+username+': '+message.params[1]);
                     }
                 });
             }
@@ -665,7 +687,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
 client.prototype._fastReconnectMessage = function _fastReconnectMessage(message) {
     var self = this;
 
-    // Logging RAW messages.
     if (message.command.match(/^[0-9]+$/g)) { self.logger.raw('%s: %s', message.command, message.params[1]); }
 
     var messageFrom = message.prefix;
@@ -682,10 +703,10 @@ client.prototype._fastReconnectMessage = function _fastReconnectMessage(message)
 
         case '372':
             Server = self.socket.remoteAddress;
-            Port = self.socket.remotePort;
+            Port   = self.socket.remotePort;
             self.socket.resetRetry();
 
-            var options = self.options.options || {};
+            var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
             self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
 
@@ -726,15 +747,16 @@ client.prototype.connect = function connect() {
     var connection = self.options.connection || {};
 
     var preferredServer = connection.preferredServer || null;
-    var preferredPort = connection.preferredPort || null;
-    var serverType = connection.serverType || 'chat';
-    Servers.getServer(serverType, preferredServer, preferredPort, self.debugIgnore, self.logger, function(server){
+    var preferredPort   = connection.preferredPort || null;
+    var serverType      = connection.serverType || 'chat';
+
+    Servers.getServer(serverType, preferredServer, preferredPort, self.logger, function(server){
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
             var password = identity.password || 'SCHMOOPIIE';
 
-            if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
+            self.logger.event('logon');
             self.emit('logon');
 
             self.socket.crlfWrite('PASS '+password);
@@ -747,25 +769,26 @@ client.prototype.connect = function connect() {
     });
 };
 
+/**
+ * Gracefully reconnect to the server.
+ */
 client.prototype.fastReconnect = function fastReconnect() {
     var self = this;
 
-    if (self.debugIgnore.indexOf('info') < 0) {
-        self.logger.info('reconnect request received from twitch.');
-    }
+    self.logger.info('Reconnect request received from Twitch.');
 
     self.gracefulReconnection = true;
 
     var connection = self.options.connection || {};
-
     var serverType = connection.serverType || 'chat';
-    Servers.getServer(serverType, Server, Port, self.debugIgnore, self.logger, function(server) {
+
+    Servers.getServer(serverType, Server, Port, self.logger, function(server) {
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
             var password = identity.password || 'SCHMOOPIIE';
 
-            if (self.debugIgnore.indexOf('logon') < 0) { self.logger.event('logon'); }
+            self.logger.event('logon');
             self.emit('logon');
 
             self.socket.crlfWrite('PASS '+password);
@@ -776,9 +799,7 @@ client.prototype.fastReconnect = function fastReconnect() {
         setTimeout(function(){
             oldSocket.unpipe();
             oldSocket.forceDisconnect(true);
-            if (self.debugIgnore.indexOf('info') < 0) {
-                self.logger.info('dropped your old connection, will resume with the new one.');
-            }
+            self.logger.info('Dropped old connection, resuming with the new one.');
             self.gracefulReconnection = false;
             self.socket.pipe(self.stream);
         },25000);
@@ -787,6 +808,9 @@ client.prototype.fastReconnect = function fastReconnect() {
     });
 };
 
+/**
+ * Disconnect from server.
+ */
 client.prototype.disconnect = function disconnect() {
     this.socket.forceDisconnect(false);
 };
@@ -799,8 +823,7 @@ client.prototype.clearChannels = function clearChannels() { Channels = []; };
  * @params {string} channel
  */
 client.prototype.join = function join(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('JOIN '+channel.toLowerCase());
+    this.socket.crlfWrite('JOIN ' + addHash(channel).toLowerCase());
 };
 
 /**
@@ -809,8 +832,7 @@ client.prototype.join = function join(channel) {
  * @params {string} channel
  */
 client.prototype.part = function part(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PART '+channel.toLowerCase());
+    this.socket.crlfWrite('PART ' + addHash(channel).toLowerCase());
 };
 
 /**
@@ -828,8 +850,7 @@ client.prototype.ping = function ping() {
  * @params {string} message
  */
 client.prototype.say = function say(channel, message) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :'+message);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :' + message);
 };
 
 /**
@@ -839,8 +860,7 @@ client.prototype.say = function say(channel, message) {
  * @params {string} target
  */
 client.prototype.host = function host(channel, target) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.host '+target);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.host ' + target);
 };
 
 /**
@@ -849,8 +869,7 @@ client.prototype.host = function host(channel, target) {
  * @params {string} channel
  */
 client.prototype.unhost = function unhost(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unhost');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unhost');
 };
 
 /**
@@ -861,9 +880,8 @@ client.prototype.unhost = function unhost(channel) {
  * @params {integer} seconds
  */
 client.prototype.timeout = function timeout(channel, username, seconds) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.timeout '+username+' '+seconds);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.timeout ' + username + ' ' + seconds);
 };
 
 /**
@@ -873,8 +891,7 @@ client.prototype.timeout = function timeout(channel, username, seconds) {
  * @params {string} username
  */
 client.prototype.ban = function ban(channel, username) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.ban '+username);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.ban ' + username);
 };
 
 /**
@@ -884,8 +901,7 @@ client.prototype.ban = function ban(channel, username) {
  * @params {string} username
  */
 client.prototype.unban = function unban(channel, username) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unban '+username);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unban ' + username);
 };
 
 /**
@@ -895,9 +911,8 @@ client.prototype.unban = function unban(channel, username) {
  * @params {integer} seconds
  */
 client.prototype.slow = function slow(channel, seconds) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.slow '+seconds);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.slow ' + seconds);
 };
 
 /**
@@ -906,8 +921,7 @@ client.prototype.slow = function slow(channel, seconds) {
  * @params {string} channel
  */
 client.prototype.slowoff = function slowoff(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.slowoff');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.slowoff');
 };
 
 /**
@@ -916,8 +930,7 @@ client.prototype.slowoff = function slowoff(channel) {
  * @params {string} channel
  */
 client.prototype.subscribers = function subscriberString(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.subscribers');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.subscribers');
 };
 
 /**
@@ -926,8 +939,7 @@ client.prototype.subscribers = function subscriberString(channel) {
  * @params {string} channel
  */
 client.prototype.subscribersoff = function subscribersoff(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.subscribersoff');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.subscribersoff');
 };
 
 /**
@@ -936,8 +948,7 @@ client.prototype.subscribersoff = function subscribersoff(channel) {
  * @params {string} channel
  */
 client.prototype.clear = function clear(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.clear');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.clear');
 };
 
 /**
@@ -946,8 +957,7 @@ client.prototype.clear = function clear(channel) {
  * @params {string} channel
  */
 client.prototype.r9kbeta = function r9kbeta(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.r9kbeta');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.r9kbeta');
 };
 
 /**
@@ -956,8 +966,7 @@ client.prototype.r9kbeta = function r9kbeta(channel) {
  * @params {string} channel
  */
 client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.r9kbetaoff');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.r9kbetaoff');
 };
 
 /**
@@ -967,8 +976,7 @@ client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
  * @params {string} username
  */
 client.prototype.mod = function mod(channel, username) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mod '+username);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.mod ' + username);
 };
 
 /**
@@ -978,8 +986,7 @@ client.prototype.mod = function mod(channel, username) {
  * @params {string} username
  */
 client.prototype.unmod = function mod(channel, username) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.unmod '+username);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unmod ' + username);
 };
 
 /**
@@ -989,11 +996,10 @@ client.prototype.unmod = function mod(channel, username) {
  * @params {integer} seconds
  */
 client.prototype.commercial = function commercial(channel, seconds) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
     seconds = typeof seconds !== 'undefined' ? seconds : 30;
     var availableLengths = [30, 60, 90, 120, 150, 180];
     if (availableLengths.indexOf(seconds) === -1) { seconds = 30; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.commercial '+seconds);
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.commercial ' + seconds);
 };
 
 /**
@@ -1003,8 +1009,7 @@ client.prototype.commercial = function commercial(channel, seconds) {
  * @params {string} channel
  */
 client.prototype.mods = function mods(channel) {
-    if (!String(channel).startsWith('#')) { channel = '#'+channel; }
-    this.socket.crlfWrite('PRIVMSG '+channel.toLowerCase()+ ' :.mods');
+    this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.mods');
 };
 
 /**
@@ -1042,7 +1047,7 @@ fs.readdirSync(__dirname+'/api').forEach(function(file) {
 });
 
 /**
- * Loading the Utils..
+ * Loading all utils..
  * @type {{}}
  */
 client.prototype.utils = {};
@@ -1053,11 +1058,6 @@ fs.readdirSync(__dirname+'/utils').forEach(function(file) {
     }
 });
 
-/**
- * Exports the database settings for external usage (API / Utils).
- *
- * @returns {*}
- */
 exports.getDatabase = function() {
     if (Database === null) {
         Database = new Locally(DBPath);

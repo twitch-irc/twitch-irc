@@ -22,11 +22,12 @@
  * THE SOFTWARE.
  */
 
-var tempUserData = {};
+var tempUserData    = {};
 var channelUserData = {};
 
 /**
- * Create a temporary user data.
+ * Create a temporary user object with default values.
+ *
  * @param username
  */
 function createTempUserData(username) {
@@ -41,7 +42,8 @@ function createTempUserData(username) {
 }
 
 /**
- * Insert the user data into the channel data.
+ * Insert the user object into the channel object.
+ *
  * @param channel
  * @param username
  * @param cb
@@ -56,7 +58,6 @@ function createChannelUserData(channel, username, cb) {
 	cb();
 }
 
-// Export everything.
 exports.tempUserData = tempUserData;
 exports.createTempUserData = createTempUserData;
 exports.createChannelUserData = createChannelUserData;

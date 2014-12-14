@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-var Chalk    = require('chalk');
 var Express  = require('express');
 var Locally  = require('locallydb');
 var Method   = require('method-override');
@@ -31,12 +30,11 @@ var Passport = require('passport');
 var Strategy = require('passport-twitch').Strategy;
 
 var App      = Express();
-
 var Database = null;
 var DBPath   = './database';
 
 /**
- * Create a webserver and handle OAuth 2.0 for Twitch.
+ * Creating a web server and handle OAuth 2.0 for Twitch.
  *
  * @param config
  * @returns {exports}
@@ -45,14 +43,12 @@ module.exports = function(config) {
     var config = config || {};
     var useOAuth = (typeof config.oauth != 'undefined') ? config.oauth : false;
     if (useOAuth) {
-        this.options = config || {};
-        var options = config.options || {};
-        var debug = options.debug || false;
-
-        var port = this.options.oauth.port || 51230;
-        var clientID = this.options.oauth.clientID || '';
+        this.options     = config || {};
+        var options      = config.options || {};
+        var port         = this.options.oauth.port || 51230;
+        var clientID     = this.options.oauth.clientID || '';
         var clientSecret = this.options.oauth.clientSecret || '';
-        var scopes = this.options.oauth.scopes || '';
+        var scopes       = this.options.oauth.scopes || '';
 
         DBPath = (typeof options.database != 'undefined') ? options.database : './database';
 
@@ -60,14 +56,6 @@ module.exports = function(config) {
             // Not using oauth
         } else {
             var callback = 'http://127.0.0.1:'+port+'/auth/twitch/callback';
-            if (debug) {
-                if (port !== 80) {
-                    console.log(Chalk.yellow('oauth') + ': http://127.0.0.1:' + port);
-                } else {
-                    console.log(Chalk.yellow('oauth') + ': http://127.0.0.1');
-                }
-                console.log(Chalk.yellow('callback') + ': ' + callback);
-            }
             Passport.serializeUser(function (user, done) {
                 done(null, user);
             });
@@ -117,7 +105,6 @@ module.exports = function(config) {
 
             App.use(Passport.initialize());
             App.use(Passport.session());
-
 
             App.get('/', Passport.authenticate('twitch', {
                 scope: scopes.split(',')
