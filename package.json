@@ -51,8 +51,7 @@
     "passport": "latest",
     "passport-twitch": "latest",
     "express-session": "latest",
-    "ejs": "latest",
-    "querystring": "latest"
+    "ejs": "latest"
   },
   "engines": {
     "node": ">=0.10.0"

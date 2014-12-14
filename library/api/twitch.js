@@ -24,7 +24,36 @@
 
 var Client      = require('../client');
 var Request     = require('request');
-var Querystring = require('querystring');
+
+/**
+ * Generate a query string with an object.
+ *
+ * @param v
+ * @returns {*}
+ */
+var stringifyPrimitive = function(v) {
+    switch (typeof v) {
+        case 'string': return v;
+        case 'boolean': return v ? 'true' : 'false';
+        case 'number': return isFinite(v) ? v : '';
+        default: return '';
+    }
+};
+
+function queryString(object) {
+    if (object === null || !object) { object = {}; }
+
+    return Object.keys(object).map(function(k) {
+        var ks = encodeURIComponent(stringifyPrimitive(k)) + '=';
+        if (Array.isArray(object[k])) {
+            return object[k].map(function(v) {
+                return ks + encodeURIComponent(stringifyPrimitive(v));
+            }).join('&');
+        } else {
+            return ks + encodeURIComponent(stringifyPrimitive(object[k]));
+        }
+    }).join('&');
+}
 
 /**
  * Sends a request to the Twitch API.
@@ -37,6 +66,7 @@ module.exports = {
     twitch: function (channel, method, path, options, callback) {
         var self = this;
 
+        channel = channel !== null ? channel : 'no_channel_specified';
         channel = typeof channel !== 'undefined' ? channel : 'no_channel_specified';
         channel = channel.replace('#', '');
         method  = typeof method !== 'undefined' ? method : 'GET';
@@ -53,7 +83,7 @@ module.exports = {
             token = collection.where({channel: channel})[0].token;
         }
 
-        options = Querystring.stringify(options);
+        options = queryString(options);
 
         var requestOptions = {
             url: 'https://api.twitch.tv/kraken' + path + (options ? '?' + options : ''),
