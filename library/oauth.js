@@ -45,15 +45,18 @@ module.exports = function(config) {
     if (useOAuth) {
         this.options     = config || {};
         var options      = config.options || {};
+        var assets       = this.options.oauth.assets || __dirname + '/../oauth/public';
         var port         = this.options.oauth.port || 51230;
         var clientID     = this.options.oauth.clientID || '';
         var clientSecret = this.options.oauth.clientSecret || '';
+        var redirect     = this.options.oauth.redirect || '';
         var scopes       = this.options.oauth.scopes || '';
+        var views        = this.options.oauth.views || __dirname + '/../oauth/views';
 
         DBPath = (typeof options.database != 'undefined') ? options.database : './database';
 
         if (clientID.trim() === '' || clientSecret.trim() === '' || scopes.trim() === '') {
-            // Not using oauth
+            // Not using OAuth..
         } else {
             var callback = 'http://127.0.0.1:' + port + '/auth/twitch/callback';
             Passport.serializeUser(function (user, done) {
@@ -87,7 +90,7 @@ module.exports = function(config) {
                 }
             ));
 
-            App.use(Express.static(__dirname + '/../oauth/public'));
+            App.use(Express.static(assets));
 
             App.use(Parser.urlencoded({
                 extended: true
@@ -95,7 +98,7 @@ module.exports = function(config) {
             App.use(Parser.json());
             App.use(Method());
 
-            App.set('views', __dirname + '/../oauth/views');
+            App.set('views', views);
             App.engine('.html', require('ejs').renderFile);
             App.set('view engine', 'html');
             App.set('view options', {
@@ -120,10 +123,20 @@ module.exports = function(config) {
                 res.render('success.html');
             });
 
+            var failURL = '/failed';
+            if (redirect !== '') {
+                var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
+                failURL = decodeURIComponent(redirect) + firstSeperator + 'oauth=failed';
+            }
             App.get('/auth/twitch/callback', Passport.authenticate('twitch', {
-                failureRedirect: '/failed'
+                failureRedirect: failURL
             }), function (req, res) {
-                res.redirect('/success');
+                if (redirect !== '') {
+                    var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
+                    res.redirect(decodeURIComponent(redirect) + firstSeperator + 'oauth=success');
+                } else {
+                    res.redirect('/success');
+                }
             });
 
             App.listen(port, '0.0.0.0');
