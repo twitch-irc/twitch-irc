@@ -34,7 +34,6 @@ $ npm install twitch-irc@beta
 - ``database``: {String} Path to the database directory. (Default is './database')
 - ``debug``: {Boolean} Show debug messages in the console. (Default is false)
 - ``debugIgnore``: {Array} Ignore some events when debugging. (Default is empty)
-- ``logging``: {Boolean} Logs the console to file. (Default is false)
 - ``tc``: {Integer} Your TWITCHCLIENT number. (Default is 3)
 
 ``connection``: (Optional)
