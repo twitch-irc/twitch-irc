@@ -118,9 +118,12 @@ var client = function client(options) {
         });
     }
 
+    var exitOnError = (this.options.options && (typeof this.options.options.exitOnError != 'undefined')) ? this.options.options.exitOnError : true;
+
     process.on('uncaughtException', function (err) {
         self.logger.crash(err.stack);
         self.emit('crash', err.message, err.stack);
+        if (exitOnError) { process.exit(); }
     });
 };
 
