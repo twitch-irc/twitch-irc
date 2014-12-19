@@ -66,7 +66,6 @@ var client = new irc.client({
     options: {
         debug: true,
         debugIgnore: ['ping', 'chat', 'action'],
-        logging: false,
         tc: 3
     },
     identity: {
@@ -103,7 +102,6 @@ client = new irc.client(
       "chat"
       "action"
     ]
-    logging: false
     tc: 3
 
   identity:
