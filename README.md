@@ -26,8 +26,11 @@ $ npm install twitch-irc@beta
 
 ## Configuration
 
+**Note:** Some options are only available with the beta version.
+
 ``options``: (Optional)
 - ``checkUpdates``: {Boolean} Check for updates. (Default is true)
+- ``exitOnError``: {Boolean} Exit the application on error. (Default is true)
 - ``database``: {String} Path to the database directory. (Default is './database')
 - ``debug``: {Boolean} Show debug messages in the console. (Default is false)
 - ``debugIgnore``: {Array} Ignore some events when debugging. (Default is empty)
@@ -40,6 +43,12 @@ $ npm install twitch-irc@beta
 - ``preferredServer``: {String} Connect to the specified server instead. (Optional)
 - ``preferredPort``: {Integer} Port of the preferred server. (Optional)
 - ``serverType``: {String} Connect to a random server type. Types are chat, events and groups. (Default is 'chat')
+
+``logging``: (Optional)
+- ``enabled``: {Boolean} Enable logging. (Default is false)
+- ``chat``: {Boolean} Log chat messages to file. (Default is false)
+- ``rewrite``: {Boolean} Rewrite the file when starting your application. (Default is true)
+- ``timestamp``: {Boolean} Show timestamp. (Default is true)
 
 ``identity``: (Optional)
 - ``username``: {String} Username of your bot. (Optional)
