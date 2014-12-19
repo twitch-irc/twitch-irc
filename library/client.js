@@ -40,7 +40,7 @@ var Server   = 'irc.twitch.tv';
 var Port     = 443;
 var Channels = [];
 
-var Joined   = false;
+var Joined       = false;
 
 /**
  * Compare two versions.
@@ -99,10 +99,10 @@ var client = function client(options) {
 
     this.gracefulReconnection = false;
 
-    this.logger.dev('created a new client instance on pid '+process.pid);
-    this.logger.dev('memory rss: '+process.memoryUsage().rss);
-    this.logger.dev('memory heap total: '+process.memoryUsage().heapTotal);
-    this.logger.dev('memory heap used : '+process.memoryUsage().heapUsed);
+    this.logger.dev('created a new client instance on pid ' + process.pid);
+    this.logger.dev('memory rss: ' + process.memoryUsage().rss);
+    this.logger.dev('memory heap total: ' + process.memoryUsage().heapTotal);
+    this.logger.dev('memory heap used : ' + process.memoryUsage().heapUsed);
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
 
@@ -127,36 +127,29 @@ var client = function client(options) {
 Util.inherits(client, Events.EventEmitter);
 
 /**
- * Remove an item from an array.
+ * Remove items from array.
  *
  * @param deleteValue
  * @returns {Array}
  */
 Array.prototype.clean = function(deleteValue) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] == deleteValue) {
-            this.splice(i, 1);
-            i--;
-        }
-    }
-    return this;
+    this.map(function(value, index, array) {
+        return value === deleteValue && array.splice(index, 1) && array;
+    });
 };
 
 /**
- * Make sure there is # at the beginning of the string.
+ * Make sure there is # at the beginning of string.
  *
  * @param string
  * @returns {String}
  */
 function addHash(string) {
-    if (string.substring(0,1) !== '#') {
-        string = '#' + string;
-    }
-    return string;
+    return string.substring(0,1) !== '#' && '#' + string || string;
 }
 
 /**
- * Remove any # at the beginning of the string.
+ * Remove any # at the beginning of string.
  *
  * @param string
  * @returns {String}
@@ -198,7 +191,7 @@ function remHash(string) { return string.replace('#', ''); }
 client.prototype._handleMessage = function _handleMessage(message) {
     var self = this;
 
-    if (message.command.match(/^[0-9]+$/g)) { self.logger.raw( message.command+': '+message.params[1]); }
+    if (message.command.match(/^[0-9]+$/g)) { self.logger.raw(message.command + ': ' + message.params[1]); }
 
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
@@ -242,7 +235,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
 
-            self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
+            self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
 
             var timer    = 0;
             var channels = [];
@@ -672,11 +665,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     if (String(message.params[1]).startsWith('\u0001ACTION')) {
                         self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                         self.logger.event('action');
-                        self.logger.chat('['+message.params[0]+'] '+username+': '+String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                        self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                     } else {
                         self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                         self.logger.event('chat');
-                        self.logger.chat('['+message.params[0]+'] '+username+': '+message.params[1]);
+                        self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + message.params[1]);
                     }
                 });
             }
@@ -708,7 +701,7 @@ client.prototype._fastReconnectMessage = function _fastReconnectMessage(message)
 
             var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
-            self.socket.crlfWrite('TWITCHCLIENT '+twitchClient);
+            self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
 
             var timer = 0;
             Channels.forEach(function(channel) {
@@ -753,13 +746,13 @@ client.prototype.connect = function connect() {
     Servers.getServer(serverType, preferredServer, preferredPort, self.logger, function(server){
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
-            var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
+            var nickname = identity.username || 'justinfan' + Math.floor((Math.random() * 80000) + 1000);
             var password = identity.password || 'SCHMOOPIIE';
 
             self.logger.event('logon');
             self.emit('logon');
 
-            self.socket.crlfWrite('PASS '+password);
+            self.socket.crlfWrite('PASS ' + password);
             self.socket.crlfWrite('NICK %s', nickname);
             self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
         };
@@ -785,13 +778,13 @@ client.prototype.fastReconnect = function fastReconnect() {
     Servers.getServer(serverType, Server, Port, self.logger, function(server) {
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
-            var nickname = identity.username || 'justinfan'+Math.floor((Math.random() * 80000) + 1000);
+            var nickname = identity.username || 'justinfan' + Math.floor((Math.random() * 80000) + 1000);
             var password = identity.password || 'SCHMOOPIIE';
 
             self.logger.event('logon');
             self.emit('logon');
 
-            self.socket.crlfWrite('PASS '+password);
+            self.socket.crlfWrite('PASS ' + password);
             self.socket.crlfWrite('NICK %s', nickname);
             self.socket.crlfWrite('USER %s 8 * :%s', nickname, nickname);
         };
@@ -1039,8 +1032,8 @@ for(var methodName in databaseMethods) {
  */
 var fs = require("fs");
 client.prototype.api = {};
-fs.readdirSync(__dirname+'/api').forEach(function(file) {
-    var apiMethods = require(__dirname+'/api/' + file);
+fs.readdirSync(__dirname + '/api').forEach(function(file) {
+    var apiMethods = require(__dirname + '/api/' + file);
     for(var methodName in apiMethods) {
         client.prototype.api[methodName]=apiMethods[methodName];
     }
@@ -1051,8 +1044,8 @@ fs.readdirSync(__dirname+'/api').forEach(function(file) {
  * @type {{}}
  */
 client.prototype.utils = {};
-fs.readdirSync(__dirname+'/utils').forEach(function(file) {
-    var utilsMethods = require(__dirname+'/utils/' + file);
+fs.readdirSync(__dirname + '/utils').forEach(function(file) {
+    var utilsMethods = require(__dirname + '/utils/' + file);
     for(var methodName in utilsMethods) {
         client.prototype.utils[methodName]=utilsMethods[methodName];
     }

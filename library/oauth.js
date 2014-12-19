@@ -55,7 +55,7 @@ module.exports = function(config) {
         if (clientID.trim() === '' || clientSecret.trim() === '' || scopes.trim() === '') {
             // Not using oauth
         } else {
-            var callback = 'http://127.0.0.1:'+port+'/auth/twitch/callback';
+            var callback = 'http://127.0.0.1:' + port + '/auth/twitch/callback';
             Passport.serializeUser(function (user, done) {
                 done(null, user);
             });
