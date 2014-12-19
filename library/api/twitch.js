@@ -80,7 +80,12 @@ module.exports = {
         callback = typeof callback === 'function' ? callback : function () {};
 
         if (collection.where({channel: channel}).length >= 1) {
-            token = collection.where({channel: channel})[0].token;
+            token = collection.where({channel: channel})[0].token || channel;
+        } else {
+            if (channel !== 'no_channel_specified') { token = channel; }
+            else {
+                token = '';
+            }
         }
 
         options = queryString(options);
