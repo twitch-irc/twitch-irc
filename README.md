@@ -28,7 +28,7 @@ $ npm install twitch-irc@beta
 
 ``options``: (Optional)
 - ``checkUpdates``: {Boolean} Check for updates. (Default is true)
-- ``data``: {String} Path to the database directory. (Default is './database')
+- ``database``: {String} Path to the database directory. (Default is './database')
 - ``debug``: {Boolean} Show debug messages in the console. (Default is false)
 - ``debugIgnore``: {Array} Ignore some events when debugging. (Default is empty)
 - ``logging``: {Boolean} Logs the console to file. (Default is false)
