@@ -1,67 +1,62 @@
 # twitch-irc
-[![Build Status](https://secure.travis-ci.org/Schmoopiie/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc) [![Downloads](http://img.shields.io/npm/dm/twitch-irc.svg)](https://www.npmjs.org/package/twitch-irc) [![Npm Version](http://img.shields.io/npm/v/twitch-irc.svg)](https://www.npmjs.org/package/twitch-irc) [![Issues](http://img.shields.io/github/issues/schmoopiie/twitch-irc.svg)](https://github.com/Schmoopiie/twitch-irc/issues)
+[![Build Status](https://secure.travis-ci.org/Schmoopiie/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc) [![Downloads](http://img.shields.io/npm/dm/twitch-irc.svg?style=flat)](https://www.npmjs.org/package/twitch-irc) [![Npm Version](http://img.shields.io/npm/v/twitch-irc.svg?style=flat)](https://www.npmjs.org/package/twitch-irc) [![Issues](http://img.shields.io/github/issues/schmoopiie/twitch-irc.svg?style=flat)](https://github.com/Schmoopiie/twitch-irc/issues)
 
 ![](http://i.imgur.com/7PMEvN5.png)
 Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the U.S. and/or other countries. "Twitch-IRC" is not operated by, sponsored by, or affiliated with Twitch Interactive, Inc. in any way.
 
-## Installing the library
+## Install twitch-irc
 
-Add the library as a dependency in your ``package.json`` and type:
+Install twitch-irc globally to use CLI features:
 
 ```bash
-$ npm install
+$ npm install --global twitch-irc
 ```
 
-Or install the library locally:
+While developing your application, why not using the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.1.1b) of twitch-irc and [report any bugs](https://github.com/Schmoopiie/twitch-irc/issues/new) ?
 
 ```bash
-$ npm install twitch-irc
-```
-
-Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.1.1b) ?
-
-```bash
-$ npm install twitch-irc@beta
+$ npm install --global twitch-irc@beta
 ```
 
 ## Configuration
 
-**Note:** Some options are only available with the beta version.
+Each and every options listed below are optional.
 
-``options``: (Optional)
-- ``checkUpdates``: {Boolean} Check for updates. (Default is true)
-- ``exitOnError``: {Boolean} Exit the application on error. (Default is true)
-- ``database``: {String} Path to the database directory. (Default is './database')
-- ``debug``: {Boolean} Show debug messages in the console. (Default is false)
-- ``debugIgnore``: {Array} Ignore some events when debugging. (Default is empty)
-- ``tc``: {Integer} Your TWITCHCLIENT number. (Default is 3)
+**Notice:** Some options are only available with the beta version.
 
-``connection``: (Optional)
-- ``retries``: {Integer} Maximum retries when trying to connect to server. (Default is infinite)
-- ``reconnect``: {Boolean} Reconnect to server upon disconnection. (Default is true)
-- ``preferredServer``: {String} Connect to the specified server instead. (Optional)
-- ``preferredPort``: {Integer} Port of the preferred server. (Optional)
-- ``serverType``: {String} Connect to a random server type. Types are chat, events and groups. (Default is 'chat')
+``options``: (_Optional_)
+- ``checkUpdates``: _Boolean_ — Check for updates when starting your app. (Default: _true_)
+- ``database``: _String_ — Path to the database directory. (Default: _'./database'_)
+- ``debug``: _Boolean_ — Show debug messages in the console. (Default: _false_)
+- ``debugIgnore``: _Array_ — Ignore events while in debug mode. (Default: _[]_)
+- ``exitOnError``: _Boolean_ — Exit the application on error. (Default: _true_)
+- ``tc``: _Integer_ — Your TWITCHCLIENT value. (Default: _3_)
 
-``logging``: (Optional)
-- ``enabled``: {Boolean} Enable logging. (Default is false)
-- ``chat``: {Boolean} Log chat messages to file. (Default is false)
-- ``rewrite``: {Boolean} Rewrite the file when starting your application. (Default is true)
-- ``timestamp``: {Boolean} Show timestamp. (Default is true)
+``connection``: (_Optional_)
+- ``preferredServer``: _String_ — Connect to this particular server. (_Optional_)
+- ``preferredPort``: _Integer_ — Change the default port. (_Optional_)
+- ``reconnect``: _Boolean_ — Reconnect to twitch when disconnected. (Default: _true_)
+- ``retries``: _Integer_ — Maximum attempts to connect to server. (Default: _-1_)
+- ``serverType``: _String_ — Change the server type. (Default: _'chat'_)
 
-``identity``: (Optional)
-- ``username``: {String} Username of your bot. (Optional)
-- ``password``: {String} OAuth password of your bot. Use http://twitchapps.com/tmi/ to generate one. (Optional)
+``logging``: (_Optional_)
+- ``enabled``: _Boolean_ — Enable logging to file. (Default: _false_)
+- ``chat``: _Boolean_ — Enable logging of chat/action messages. (Default: _false_)
+- ``rewrite``: _Boolean_ — Rewrite the log file when starting your app. (Default: _true_)
+- ``timestamp``: _Boolean_ — Show timestamp in your log file. (Default: _true_)
 
-``channels``: {Array} List of channels to join when connected to server. (Optional, default is empty)
+``identity``: (_Optional_)
+- ``username``: _String_ — Username of your bot.
+- ``password``: _String_ — [OAuth password](http://twitchapps.com/tmi/) of your bot.
 
-## How it works
+``channels``: _Array_ — List of channels you would like to join when connected. (Default: _[]_)
 
-**Javascript**
+## Example
+
 ```javascript
 var irc = require('twitch-irc');
 
-// Calling a new client..
+// Calling a new instance..
 var client = new irc.client({
     options: {
         debug: true,
@@ -75,58 +70,15 @@ var client = new irc.client({
     channels: ['list', 'of', 'channels']
 });
 
-// Connect the client to server..
+// Connect the client to the server..
 client.connect();
 
-// Your events..
+// Your events are called like this..
 client.addListener('chat', function (channel, user, message) {
-    // If the message starts with !hello..
     if (message.indexOf('!hello') === 0) {
-        // Say something
-        // https://github.com/Schmoopiie/twitch-irc/wiki/Command:-Say
-        client.say(channel, 'Hey '+user.username+'! How you doing? Kappa');
+        client.say(channel, 'Hey ' + user.username + '! How you doing? Kappa');
     }
 });
-```
-
-**Coffeescript**
-```coffeescript
-irc = require("twitch-irc")
-
-# Calling a new client..
-client = new irc.client(
-  options:
-    debug: true
-    debugIgnore: [
-      "ping"
-      "chat"
-      "action"
-    ]
-    tc: 3
-
-  identity:
-    username: "Username"
-    password: "oauth:your_oauth"
-
-  channels: [
-    "list"
-    "of"
-    "channels"
-  ]
-)
-
-# Connect the client to server..
-client.connect()
-
-# Your events..
-client.addListener "chat", (channel, user, message) ->
-  
-  # If the message starts with !hello..
-  if message.indexOf("!hello") is 0
-    # Say something
-    # https://github.com/Schmoopiie/twitch-irc/wiki/Command:-Say
-    client.say channel, "Hey " + user.username + "! How you doing? Kappa"
-  return
 ```
 
 ## Features
@@ -145,7 +97,7 @@ Please review the [guidelines for contributing](https://github.com/Schmoopiie/tw
 
 ## Support
 
-You can contact me on Twitter [@Schmoopiie](https://twitter.com/Schmoopiie/) or [create an issue](https://github.com/Schmoopiie/twitch-irc/issues/new).
+Feel free to [create an issue](https://github.com/Schmoopiie/twitch-irc/issues/new). We are active on the development of twitch-irc and we respond to each and every issues. When submitting, please include your Node/NPM versions, your operating system and the log file or the error message. Please, do your best to explain how to reproduce the issue.
 
 ## License
 
