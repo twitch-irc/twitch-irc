@@ -143,12 +143,6 @@ function init() {
                             content += '});\n\n';
                             content += '// Connect the client to the server..\n';
                             content += 'client.connect();\n\n';
-                            content += '// Load the events directory..\n';
-                            content += 'if (fs.existsSync(\'./events\')) {\n';
-                            content += '    fs.readdirSync(\'./events\').forEach(function(file) {\n';
-                            content += '        require(\'./events/\' + file)(client);\n';
-                            content += '    });\n';
-                            content += '}\n\n';
                             content += '// Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Event:-Chat\n';
                             content += 'client.addListener(\'chat\', function (channel, user, message) {\n';
                             content += '    if (message.toLowerCase().indexOf(\'!hello\') === 0) {\n';
