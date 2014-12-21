@@ -50,7 +50,9 @@
     "passport": "latest",
     "passport-twitch": "latest",
     "express-session": "latest",
-    "ejs": "latest"
+    "ejs": "latest",
+    "inquirer": "latest",
+    "commander": "latest"
   },
   "engines": {
     "node": ">=0.10.0"
@@ -61,6 +63,10 @@
       "email": "Schmoopiie@gmail.com"
     }
   ],
+  "preferGlobal": true,
+  "bin": {
+      "twitch-irc": "./bin/twitch-irc.js"
+  },
   "directories": {},
   "homepage": "https://github.com/Schmoopiie/twitch-irc"
 }
