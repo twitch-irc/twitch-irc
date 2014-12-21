@@ -112,7 +112,7 @@ var client = function client(options) {
         Request('http://registry.npmjs.org/twitch-irc/latest', function (err, res, body) {
             if (!err && res.statusCode == 200) {
                 if (versionCompare(JSON.parse(body).version, Package.version) >= 1) {
-                    console.log('[\x1b[33m!\x1b[39m] A new update is available for twitch-irc: \x1b[32m' + JSON.parse(body).version + '\x1b[39m \x1b[90m(current: ' + Package.version + ')\x1b[39m');
+                    console.log('\x1b[36m?\x1b[97m new update available for twitch-irc: \x1b[32m' + JSON.parse(body).version + '\x1b[39m \x1b[90m(current: ' + Package.version + ')\x1b[39m');
                 }
             }
         });
