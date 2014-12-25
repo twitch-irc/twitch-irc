@@ -40,6 +40,7 @@ var Server   = 'irc.twitch.tv';
 var Port     = 443;
 var Channels = [];
 
+var CommandError = '';
 var Joined       = false;
 
 /**
@@ -445,37 +446,17 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('mods', message.params[0], mods);
                         break;
 
-                    case (message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.') ||
-                        message.params[1] === 'UNAUTHORIZED JOIN':
-                        /**
-                         * Limitation by Twitch.
-                         * The only limitation at this time is a limit of hosting. You can only host 3 channels in 30 minutes.
-                         *
-                         * @event limitation
-                         * @params {object} err
-                         */
-                        self.logger.event('limitation');
-                        var code;
-                        if (message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.') { code = 'CANNOT_HOST'; }
-                        else if (message.params[1] === 'UNAUTHORIZED JOIN') { code = 'CANNOT_HOST'; }
-                        self.emit('limitation', {message: message.params[1], code: code});
-                        break;
+                    case (
+                        String(message.params[1]).contains('You don\'t have permission') ||
+                        String(message.params[1]).contains('Only the owner of this channel can use') ||
+                        String(message.params[1]).contains('Only the channel owner and channel editors can') ||
+                        String(message.params[1]).contains('Your message was not sent') ||
+                        message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.' ||
+                        message.params[1] === 'UNAUTHORIZED JOIN' ||
+                        message.params[1] === 'You need to tell me who you want to grant mod status to.'):
 
-                    case (message.params[1] === 'You don\'t have permission to do this.' || String(message.params[1]).contains('Only the owner of this channel can use')) ||
-                        message.params[1] === 'You don\'t have permission to timeout people in this room.':
-                        /**
-                         * Permission error by Twitch.
-                         * You will receive a permission error message when you have insufficient access.
-                         *
-                         * @event permission
-                         * @params {object} err
-                         */
-                        self.logger.event('permission');
-                        var code;
-                        if (message.params[1] === 'You don\'t have permission to do this.') { code = 'NO_PERMISSION'; }
-                        else if (String(message.params[1]).contains('Only the owner of this channel can use')) { code = 'OWNER_ONLY'; }
-                        else if (message.params[1] === 'You don\'t have permission to timeout people in this room.') { code = 'NO_PERMISSION'; }
-                        self.emit('permission', {message: message.params[1], code: code});
+                        CommandError = message.params[1];
+                        setTimeout(function() { CommandError = ''; }, 300);
                         break;
 
                     case (message.params[1].split(' ')[0] === 'SPECIALUSER'):
@@ -845,8 +826,9 @@ client.prototype.ping = function ping() {
  * @params {string} channel
  * @params {string} message
  */
-client.prototype.say = function say(channel, message) {
+client.prototype.say = function say(channel, message, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :' + message);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -855,8 +837,9 @@ client.prototype.say = function say(channel, message) {
  * @params {string} channel
  * @params {string} target
  */
-client.prototype.host = function host(channel, target) {
+client.prototype.host = function host(channel, target, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.host ' + target);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -864,8 +847,9 @@ client.prototype.host = function host(channel, target) {
  *
  * @params {string} channel
  */
-client.prototype.unhost = function unhost(channel) {
+client.prototype.unhost = function unhost(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unhost');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -875,9 +859,10 @@ client.prototype.unhost = function unhost(channel) {
  * @params {string} username
  * @params {integer} seconds
  */
-client.prototype.timeout = function timeout(channel, username, seconds) {
+client.prototype.timeout = function timeout(channel, username, seconds, cb) {
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.timeout ' + username + ' ' + seconds);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -886,8 +871,9 @@ client.prototype.timeout = function timeout(channel, username, seconds) {
  * @params {string} channel
  * @params {string} username
  */
-client.prototype.ban = function ban(channel, username) {
+client.prototype.ban = function ban(channel, username, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.ban ' + username);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -896,8 +882,9 @@ client.prototype.ban = function ban(channel, username) {
  * @params {string} channel
  * @params {string} username
  */
-client.prototype.unban = function unban(channel, username) {
+client.prototype.unban = function unban(channel, username, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unban ' + username);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -906,9 +893,10 @@ client.prototype.unban = function unban(channel, username) {
  * @params {string} channel
  * @params {integer} seconds
  */
-client.prototype.slow = function slow(channel, seconds) {
+client.prototype.slow = function slow(channel, seconds, cb) {
     seconds = typeof seconds !== 'undefined' ? seconds : 300;
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.slow ' + seconds);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -916,8 +904,9 @@ client.prototype.slow = function slow(channel, seconds) {
  *
  * @params {string} channel
  */
-client.prototype.slowoff = function slowoff(channel) {
+client.prototype.slowoff = function slowoff(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.slowoff');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -925,8 +914,9 @@ client.prototype.slowoff = function slowoff(channel) {
  *
  * @params {string} channel
  */
-client.prototype.subscribers = function subscriberString(channel) {
+client.prototype.subscribers = function subscriberString(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.subscribers');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -934,8 +924,9 @@ client.prototype.subscribers = function subscriberString(channel) {
  *
  * @params {string} channel
  */
-client.prototype.subscribersoff = function subscribersoff(channel) {
+client.prototype.subscribersoff = function subscribersoff(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.subscribersoff');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -943,8 +934,9 @@ client.prototype.subscribersoff = function subscribersoff(channel) {
  *
  * @params {string} channel
  */
-client.prototype.clear = function clear(channel) {
+client.prototype.clear = function clear(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.clear');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -952,8 +944,9 @@ client.prototype.clear = function clear(channel) {
  *
  * @params {string} channel
  */
-client.prototype.r9kbeta = function r9kbeta(channel) {
+client.prototype.r9kbeta = function r9kbeta(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.r9kbeta');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -961,8 +954,9 @@ client.prototype.r9kbeta = function r9kbeta(channel) {
  *
  * @params {string} channel
  */
-client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
+client.prototype.r9kbetaoff = function r9kbetaoff(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.r9kbetaoff');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -971,8 +965,9 @@ client.prototype.r9kbetaoff = function r9kbetaoff(channel) {
  * @params {string} channel
  * @params {string} username
  */
-client.prototype.mod = function mod(channel, username) {
+client.prototype.mod = function mod(channel, username, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.mod ' + username);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -981,8 +976,9 @@ client.prototype.mod = function mod(channel, username) {
  * @params {string} channel
  * @params {string} username
  */
-client.prototype.unmod = function mod(channel, username) {
+client.prototype.unmod = function mod(channel, username, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.unmod ' + username);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -991,11 +987,12 @@ client.prototype.unmod = function mod(channel, username) {
  * @params {string} channel
  * @params {integer} seconds
  */
-client.prototype.commercial = function commercial(channel, seconds) {
+client.prototype.commercial = function commercial(channel, seconds, cb) {
     seconds = typeof seconds !== 'undefined' ? seconds : 30;
     var availableLengths = [30, 60, 90, 120, 150, 180];
     if (availableLengths.indexOf(seconds) === -1) { seconds = 30; }
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.commercial ' + seconds);
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
@@ -1004,8 +1001,9 @@ client.prototype.commercial = function commercial(channel, seconds) {
  *
  * @params {string} channel
  */
-client.prototype.mods = function mods(channel) {
+client.prototype.mods = function mods(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + addHash(channel).toLowerCase() + ' :.mods');
+    if (typeof cb === 'function') { setTimeout(function() { if (CommandError !== '') { cb(CommandError); } else { cb(null); } }, 250); }
 };
 
 /**
