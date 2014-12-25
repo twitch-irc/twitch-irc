@@ -789,6 +789,17 @@ client.prototype.say = function say(channel, message, cb) {
 };
 
 /**
+ * Say something on a channel (action).
+ *
+ * @params {string} channel
+ * @params {string} message
+ */
+client.prototype.action = function action(channel, message, cb) {
+    this.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' : \x01ACTION ' + message + '\x01');
+    if (typeof cb === 'function') { setTimeout(function() { CommandError !== '' && cb(CommandError) && cb(null); }, 250); }
+};
+
+/**
  * Host a channel.
  *
  * @params {string} channel
