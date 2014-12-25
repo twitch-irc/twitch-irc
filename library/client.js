@@ -400,6 +400,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         String(message.params[1]).contains('Only the channel owner and channel editors can') ||
                         String(message.params[1]).contains('Your message was not sent') ||
                         String(message.params[1]).contains('Invalid username:') ||
+                        String(message.params[1]).contains('Upgrade to turbo or use one of these colors') ||
                         message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.' ||
                         message.params[1] === 'UNAUTHORIZED JOIN' ||
                         message.params[1] === 'You need to tell me who you want to grant mod status to.') ||
@@ -411,8 +412,10 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
                     case (
                         String(message.params[1]).contains('You have un-modded') ||
+                        String(message.params[1]).contains('You have banned')) ||
                         (String(message.params[1]).contains('You have added') && String(message.params[1]).contains('as a moderator.')) ||
-                        String(message.params[1]).contains('You have banned')):
+                        message.params[1] === 'Your color has been changed':
+
                         CommandError = '';
                         break;
 
@@ -546,6 +549,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     default:
                         self.logger.dev('Unhandled message from JTV:');
                         self.logger.dev(message.params[1]);
+                        console.log(message.params[1]);
                         break;
                 }
             }
@@ -796,6 +800,17 @@ client.prototype.say = function say(channel, message, cb) {
  */
 client.prototype.action = function action(channel, message, cb) {
     this.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' : \x01ACTION ' + message + '\x01');
+    if (typeof cb === 'function') { setTimeout(function() { CommandError !== '' && cb(CommandError) && cb(null); }, 250); }
+};
+
+/**
+ * Change the color of the bot's username.
+ *
+ * @params {string} channel
+ * @params {string} color
+ */
+client.prototype.color = function color(channel, color, cb) {
+    this.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' :.color ' + color);
     if (typeof cb === 'function') { setTimeout(function() { CommandError !== '' && cb(CommandError) && cb(null); }, 250); }
 };
 
