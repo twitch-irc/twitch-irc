@@ -29,7 +29,7 @@ var Package  = require('./../package.json');
 var Request  = require('request');
 var Servers  = require('./servers');
 var Socket   = require('./socket');
-var Stream   = require('irc-message-stream');
+var Stream   = require('./modules/messages');
 var String   = require('string');
 var Util     = require('util');
 var Utils    = require('./modules/utils');
@@ -410,7 +410,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.' ||
                         message.params[1] === 'UNAUTHORIZED JOIN' ||
                         message.params[1] === 'You need to tell me who you want to grant mod status to.') ||
-                        message.params[1] === 'Failed to start commercial.':
+                        message.params[1] === 'Failed to start commercial.' ||
+                        message.params[1] === 'You cannot timeout the broadcaster.':
 
                         this.logger.dev('ERROR: ' + message.params[1]);
                         CommandError = message.params[1];
@@ -419,10 +420,15 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
                     case (
                         String(message.params[1]).contains('You have un-modded') ||
-                        String(message.params[1]).contains('You have banned')) ||
+                        String(message.params[1]).contains('You have banned') ||
+                        String(message.params[1]).contains('Now hosting') ||
+                        String(message.params[1]).contains('/host commands remaining this half hour') ||
+                        String(message.params[1]).contains('You have unbanned')) ||
                         (String(message.params[1]).contains('You have added') && String(message.params[1]).contains('as a moderator.')) ||
-                        message.params[1] === 'Your color has been changed':
+                        message.params[1] === 'Your color has been changed' ||
+                        message.params[1] === 'Exited host mode.':
 
+                        this.logger.dev('SUCCESS: ' + message.params[1]);
                         CommandError = '';
                         break;
 
