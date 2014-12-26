@@ -27,6 +27,7 @@ var Locally  = require('locallydb');
 var Method   = require('method-override');
 var Parser   = require('body-parser');
 var Passport = require('passport');
+var Session  = require('express-session')
 var Strategy = require('passport-twitch').Strategy;
 
 var App      = Express();
@@ -85,6 +86,8 @@ module.exports = function(config) {
                             collection.insert({channel: profile.username.toLowerCase(), token: accessToken, scopes: scopes});
                         }
                         collection.save();
+                        profile.token = accessToken;
+                        profile.scopes = scopes;
                         return done(null, profile);
                     });
                 }
@@ -105,6 +108,11 @@ module.exports = function(config) {
                 layout: false
             });
             App.use(Express.Router());
+            App.use(Session({
+                secret: 'keyboard cat',
+                resave: false,
+                saveUninitialized: true
+            }));
 
             App.use(Passport.initialize());
             App.use(Passport.session());
@@ -126,14 +134,14 @@ module.exports = function(config) {
             var failURL = '/failed';
             if (redirect !== '') {
                 var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                failURL = decodeURIComponent(redirect) + firstSeperator + 'oauth=failed';
+                failURL = decodeURIComponent(redirect) + firstSeperator + 'request=failed';
             }
             App.get('/auth/twitch/callback', Passport.authenticate('twitch', {
                 failureRedirect: failURL
             }), function (req, res) {
                 if (redirect !== '') {
                     var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                    res.redirect(decodeURIComponent(redirect) + firstSeperator + 'oauth=success');
+                    res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&token=' + req.user.token + '&scopes=' + req.user.scopes);
                 } else {
                     res.redirect('/success');
                 }
