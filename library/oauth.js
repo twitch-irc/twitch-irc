@@ -40,7 +40,7 @@ var DBPath   = './database';
  * @param config
  * @returns {exports}
  */
-module.exports = function(config) {
+module.exports = function(client, config) {
     var config = config || {};
     var useOAuth = (typeof config.oauth != 'undefined') ? config.oauth : false;
     if (useOAuth) {
@@ -131,20 +131,36 @@ module.exports = function(config) {
                 res.render('success.html');
             });
 
-            var failURL = '/failed';
-            if (redirect !== '') {
-                var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                failURL = decodeURIComponent(redirect) + firstSeperator + 'request=failed';
-            }
-            App.get('/auth/twitch/callback', Passport.authenticate('twitch', {
-                failureRedirect: failURL
-            }), function (req, res) {
+            App.get('/auth/twitch/callback', function(req, res, next) {
+                var failURL = '/failed';
                 if (redirect !== '') {
                     var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                    res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&token=' + req.user.token + '&scopes=' + req.user.scopes);
-                } else {
-                    res.redirect('/success');
+                    failURL = decodeURIComponent(redirect) + firstSeperator + 'request=failed';
                 }
+
+                Passport.authenticate('twitch', function(err, user) {
+                    if (err) {
+                        client.emit('oauth', false, null, null, null);
+                        return next(err);
+                    }
+                    if (!user) {
+                        client.emit('oauth', false, null, null, null);
+                        return res.redirect(failURL);
+                    }
+                    req.logIn(user, function(err) {
+                        if (err) {
+                            client.emit('oauth', false, null, null, null);
+                            return next(err);
+                        }
+                        client.emit('oauth', true, req.user.username, req.user.token, req.user.scopes.split(','));
+                        if (redirect !== '') {
+                            var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
+                            return res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&username=' + req.user.username + '&token=' + req.user.token + '&scopes=' + req.user.scopes);
+                        } else {
+                            return res.redirect('/success');
+                        }
+                    });
+                })(req, res, next);
             });
 
             App.listen(port, '0.0.0.0');

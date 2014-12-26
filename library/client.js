@@ -57,7 +57,7 @@ var client = function client(options) {
 
     var Logger           = require('./modules/logger');
     this.logger          = new Logger(options);
-    this.oauth           = require('./oauth')(options);
+    this.oauth           = require('./oauth')(this, options);
     this.options         = (typeof options != 'undefined') ? options : {};
     this.options.options = this.options.options || {};
     this.stream          = Stream().on('data', this._handleMessage.bind(this));
