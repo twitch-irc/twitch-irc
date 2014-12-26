@@ -43,6 +43,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     var socket = Net.connect(port, host, function() {
         logger.event('connecting');
     	client.emit('connecting', host, port);
+        logger.dev('Connecting to ' + host + ' on port ' + port);
         callback();
     });
 
@@ -70,6 +71,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     	logger.error(Errors.get(err.code));
         logger.event('disconnected');
     	client.emit('disconnected', Errors.get(err.code));
+        logger.dev('Got disconnected from server: ' + Errors.get(err.code));
 
         var connection = options.connection || {};
     	var reconnect = connection.reconnect || true;
@@ -81,6 +83,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
             if (interval >= 90000) { interval = 90000; }
 
             logger.info('Reconnecting in ' + (interval/1000) + ' seconds..');
+            this.logger.dev('Reconnecting in ' + (interval/1000) + ' seconds..');
 
 	    	setTimeout(function(){
                 logger.event('reconnect');

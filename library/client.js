@@ -66,10 +66,10 @@ var client = function client(options) {
 
     this.gracefulReconnection = false;
 
-    this.logger.dev('created a new client instance on pid ' + process.pid);
-    this.logger.dev('memory rss: ' + process.memoryUsage().rss);
-    this.logger.dev('memory heap total: ' + process.memoryUsage().heapTotal);
-    this.logger.dev('memory heap used : ' + process.memoryUsage().heapUsed);
+    this.logger.dev('Created a new client instance on pid ' + process.pid);
+    this.logger.dev('Memory rss: ' + process.memoryUsage().rss);
+    this.logger.dev('Memory heap total: ' + process.memoryUsage().heapTotal);
+    this.logger.dev('Memory heap used : ' + process.memoryUsage().heapUsed);
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
 
@@ -222,6 +222,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             if (self.options.channels.length <= 0) {
                 Joined = true;
             }
+            this.logger.dev('Joined ' + message.params[0]);
             break;
 
         case 'PART':
@@ -240,6 +241,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             var index = Channels.indexOf(Utils.remHash(message.params[0]).toLowerCase());
             if (index !== -1) { Channels.splice(index, 1); }
             Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+            this.logger.dev('Left ' + message.params[0]);
             break;
 
         case 'NOTICE':
@@ -253,6 +255,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 if (message.params[1] === 'Login unsuccessful') {
                     self.logger.event('disconnected');
                     self.emit('disconnected', message.params[1]);
+                    this.logger.dev('Disconnect from server: Login unsuccessful.');
                 }
             }
             break;
@@ -262,15 +265,18 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 if (message.params[1] === '+o') {
                     self.moderators[message.params[0]].push(message.params[2].toLowerCase());
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    this.logger.dev('Mod ' + message.params[0] + ' ' + message.params[2]);
                 } else {
                     var index = self.moderators[message.params[0]].indexOf(message.params[2].toLowerCase());
                     if (index >= 0) { self.moderators[message.params[0]].splice(index, 1); }
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    this.logger.dev('Unmod ' + message.params[0] + ' ' + message.params[2]);
                 }
             }
             break;
 
         case 'RECONNECT':
+            this.logger.dev('Received RECONNECT from Twitch.');
             self.fastReconnect();
             break;
 
@@ -406,6 +412,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         message.params[1] === 'You need to tell me who you want to grant mod status to.') ||
                         message.params[1] === 'Failed to start commercial.':
 
+                        this.logger.dev('ERROR: ' + message.params[1]);
                         CommandError = message.params[1];
                         setTimeout(function() { CommandError = ''; }, 300);
                         break;
@@ -713,7 +720,7 @@ client.prototype.connect = function connect() {
 client.prototype.fastReconnect = function fastReconnect() {
     var self = this;
 
-    self.logger.info('Reconnect request received from Twitch.');
+    self.logger.info('Received RECONNECT request from Twitch.');
 
     self.gracefulReconnection = true;
 
