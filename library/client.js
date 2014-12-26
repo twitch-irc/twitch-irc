@@ -766,6 +766,20 @@ client.prototype.disconnect = function disconnect() {
     this.socket.forceDisconnect(false);
 };
 
+/**
+ * Check if username is moderator on channel.
+ *
+ * @param channel
+ * @param username
+ * @returns {boolean}
+ */
+client.prototype.isMod = function isMod(channel, username) {
+    if (this.moderators[Utils.addHash(channel)].indexOf(username.toLowerCase()) >= 0) {
+        return true;
+    }
+    return false;
+};
+
 client.prototype.clearChannels = function clearChannels() { Channels = []; };
 
 /**
