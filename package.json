@@ -43,8 +43,9 @@
     "express": "latest",
     "express-session": "latest",
     "inquirer": "latest",
-    "irc-message-stream": "latest",
+    "irc-message": "latest",
     "locallydb": "latest",
+    "lstream": "latest",
     "method-override": "latest",
     "passport": "latest",
     "passport-twitch": "latest",
@@ -52,7 +53,8 @@
     "q": "latest",
     "readable-stream": "latest",
     "request": "latest",
-    "string": "latest"
+    "string": "latest",
+    "through": "latest"
   },
   "engines": {
     "node": ">=0.10.0"
