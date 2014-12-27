@@ -624,6 +624,10 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                         self.logger.event('action');
                         self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                    } else if (String(message.params[1]).startsWith(' \x01ACTION')) {
+                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                        self.logger.event('action');
+                        self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + String(message.params[1]).between(' \x01ACTION ', '\x01').s);
                     } else {
                         self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                         self.logger.event('chat');
