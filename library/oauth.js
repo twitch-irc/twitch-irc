@@ -47,11 +47,12 @@ module.exports = function(client, config) {
         this.options     = config || {};
         var options      = config.options || {};
         var assets       = this.options.oauth.assets || __dirname + '/../oauth/public';
+        var hostname     = this.options.oauth.hostname || '127.0.0.1';
         var port         = this.options.oauth.port || 51230;
         var clientID     = this.options.oauth.clientID || '';
         var clientSecret = this.options.oauth.clientSecret || '';
         var redirect     = this.options.oauth.redirect || '';
-        var scopes       = this.options.oauth.scopes || '';
+        var scopes       = this.options.oauth.scopes || 'user_read';
         var views        = this.options.oauth.views || __dirname + '/../oauth/views';
 
         DBPath = (typeof options.database != 'undefined') ? options.database : './database';
@@ -59,7 +60,7 @@ module.exports = function(client, config) {
         if (clientID.trim() === '' || clientSecret.trim() === '' || scopes.trim() === '') {
             // Not using OAuth..
         } else {
-            var callback = 'http://127.0.0.1:' + port + '/auth/twitch/callback';
+            var callback = 'http://' + hostname + ':' + port + '/auth/twitch/callback';
             Passport.serializeUser(function (user, done) {
                 done(null, user);
             });
@@ -153,12 +154,14 @@ module.exports = function(client, config) {
                             return next(err);
                         }
                         client.emit('oauth', true, req.user.username, req.user.token, req.user.scopes.split(','));
+
                         if (redirect !== '') {
                             var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                            return res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&username=' + req.user.username + '&token=' + req.user.token + '&scopes=' + req.user.scopes);
+                            res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&username=' + req.user.username + '&token=' + req.user.token + '&scopes=' + req.user.scopes);
                         } else {
-                            return res.redirect('/success');
+                            res.redirect('/success');
                         }
+                        req.session.destroy(function(err) {});
                     });
                 })(req, res, next);
             });
