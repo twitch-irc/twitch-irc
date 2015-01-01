@@ -61,6 +61,10 @@ module.exports = function(client, config) {
             // Not using OAuth..
         } else {
             var callback = 'http://' + hostname + ':' + port + '/auth/twitch/callback';
+            if (scopes.indexOf('user_read') < 0) {
+                scopes = 'user_read,' + scopes;
+            }
+
             Passport.serializeUser(function (user, done) {
                 done(null, user);
             });
