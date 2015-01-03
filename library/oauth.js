@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Schmoopiie
+ * Copyright (c) 2015 Schmoopiie
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,11 +157,11 @@ module.exports = function(client, config) {
                             client.emit('oauth', false, null, null, null);
                             return next(err);
                         }
-                        client.emit('oauth', true, req.user.username, req.user.token, req.user.scopes.split(','));
+                        client.emit('oauth', true, req.user.displayName, req.user.token, req.user.email, req.user.scopes.split(','));
 
                         if (redirect !== '') {
                             var firstSeperator = (decodeURIComponent(redirect).indexOf('?')== -1 ? '?' : '&');
-                            res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&username=' + req.user.username + '&token=' + req.user.token + '&scopes=' + req.user.scopes);
+                            res.redirect(decodeURIComponent(redirect) + firstSeperator + 'request=success&username=' + req.user.username + '&token=' + req.user.token + '&email=' + req.user.email + '&scopes=' + req.user.scopes);
                         } else {
                             res.redirect('/success');
                         }
