@@ -42,6 +42,7 @@ var Port     = 443;
 var Channels = [];
 
 var CommandError = '';
+var ModsList     = [];
 var Joined       = false;
 
 /**
@@ -396,6 +397,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         var parts = message.params[1].split(':');
                         var mods  = parts[1].replace(/,/g, '').split(':').toString().toLowerCase().split(' ');
                         mods.clean('');
+                        ModsList = mods;
+                        setTimeout(function() { ModsList = []; }, 300);
                         self.logger.event('mods');
                         self.emit('mods', message.params[0], mods);
                         break;
@@ -407,6 +410,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         String(message.params[1]).contains('Your message was not sent') ||
                         String(message.params[1]).contains('Invalid username:') ||
                         String(message.params[1]).contains('Upgrade to turbo or use one of these colors') ||
+                        String(message.params[1]).contains('is not a moderator. Use the \'mods\' command to find a list of mode') ||
                         message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.' ||
                         message.params[1] === 'UNAUTHORIZED JOIN' ||
                         message.params[1] === 'You need to tell me who you want to grant mod status to.') ||
@@ -1017,7 +1021,7 @@ client.prototype.commercial = function commercial(channel, seconds, cb) {
  */
 client.prototype.mods = function mods(channel, cb) {
     this.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' :.mods');
-    if (typeof cb === 'function') { setTimeout(function() { CommandError !== '' && cb(CommandError) && cb(null); }, 250); }
+    if (typeof cb === 'function') { setTimeout(function() { ModsList.length !== 0 && cb(ModsList) && cb([]); }, 250); }
 };
 
 /**
