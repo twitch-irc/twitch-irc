@@ -103,7 +103,7 @@ Feel free to [create an issue](https://github.com/Schmoopiie/twitch-irc/issues/n
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Schmoopiie
+Copyright (c) 2015 Schmoopiie
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
