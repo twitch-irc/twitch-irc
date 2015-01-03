@@ -67,7 +67,7 @@
   ],
   "preferGlobal": true,
   "bin": {
-      "twitch-irc": "./bin/twitch-irc.js"
+    "twitch-irc": "./bin/twitch-irc.js"
   },
   "directories": {},
   "homepage": "https://github.com/Schmoopiie/twitch-irc"
