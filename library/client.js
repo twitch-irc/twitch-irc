@@ -566,7 +566,6 @@ client.prototype._handleMessage = function _handleMessage(message) {
                     default:
                         self.logger.dev('Unhandled message from JTV:');
                         self.logger.dev(message.params[1]);
-                        console.log(message.params[1]);
                         break;
                 }
             }
