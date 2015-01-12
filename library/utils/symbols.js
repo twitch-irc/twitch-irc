@@ -34,7 +34,7 @@ module.exports = {
         var count = 0;
         for (var i = 0; i < string.length; i++) {
             var charCode = string.substring(i, i+1).charCodeAt(0);
-            if ((charCode <= 30 || charCode >= 127) || charCode === 65533) {
+            if ((charCode <= 30 && charCode >= 127) || charCode === 65533) {
                 count++;
             }
         }
