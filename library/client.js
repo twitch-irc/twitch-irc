@@ -38,6 +38,7 @@ var Database = null;
 var DBPath   = './database';
 var Latency  = new Date();
 var Server   = 'irc.twitch.tv';
+var Tags     = false;
 var Port     = 443;
 var Channels = [];
 
@@ -73,6 +74,7 @@ var client = function client(options) {
     this.logger.dev('Memory heap used : ' + process.memoryUsage().heapUsed);
 
     DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
+    Tags   = (this.options.options && (typeof this.options.options.tags != 'undefined')) ? this.options.options.tags : false;
 
     var checkUpdates = (this.options.options && (typeof this.options.options.checkUpdates !== 'undefined')) ? this.options.options.checkUpdates : true;
 
@@ -149,6 +151,10 @@ client.prototype._handleMessage = function _handleMessage(message) {
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
 
+    if (!Utils.isEmpty(message.tags)) {
+        self.emit('tags', message.tags);
+    }
+
     switch(message.command) {
         case 'PING':
             /**
@@ -188,7 +194,11 @@ client.prototype._handleMessage = function _handleMessage(message) {
             var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
 
-            self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
+            if (Tags) {
+                self.socket.crlfWrite('CAP REQ :twitch.tv/tags');
+            } else {
+                self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
+            }
 
             var timer    = 0;
             var channels = [];
@@ -266,11 +276,13 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 if (message.params[1] === '+o') {
                     self.moderators[message.params[0]].push(message.params[2].toLowerCase());
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    self.emit('mod', message.params[0], message.params[2]);
                     this.logger.dev('Mod ' + message.params[0] + ' ' + message.params[2]);
                 } else {
                     var index = self.moderators[message.params[0]].indexOf(message.params[2].toLowerCase());
                     if (index >= 0) { self.moderators[message.params[0]].splice(index, 1); }
                     self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    self.emit('unmod', message.params[0], message.params[2]);
                     this.logger.dev('Unmod ' + message.params[0] + ' ' + message.params[2]);
                 }
             }
@@ -635,6 +647,13 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                         self.logger.event('chat');
                         self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + message.params[1]);
+                        if (message.params[1].charAt(0) === '!') {
+                            var command = message.params[1].split(' ')[0].toLowerCase();
+                            var args    = message.params[1].split(' ');
+                            args.shift();
+
+                            self.emit('command', username, {command: command, args: args || [], string: args.join(' ') || ''});
+                        }
                     }
                 });
             }

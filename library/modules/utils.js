@@ -85,5 +85,9 @@ module.exports = {
     },
     remHash: function(string) {
         return string.replace('#', '');
+    },
+    isEmpty: function(obj) {
+        // ECMAScript5
+        return Object.keys(obj).length === 0;
     }
 };
