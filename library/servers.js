@@ -269,7 +269,7 @@ var getServer = function getServer(type, server, port, logger, cb) {
             }
         });
     }
-    return serverAddress + ':' + serverPort;
+    return cb(serverAddress + ':' + serverPort);
 };
 
 exports.getServer = getServer;
