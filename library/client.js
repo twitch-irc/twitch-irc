@@ -193,6 +193,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
             var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
+            var autoRejoin   = options.autoRejoin || true;
 
             if (Tags) {
                 self.socket.crlfWrite('CAP REQ :twitch.tv/tags');
@@ -202,7 +203,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
             var timer    = 0;
             var channels = [];
-            if (Channels.length >= 1 && Joined) { channels = Channels; }
+            if (Channels.length >= 1 && Joined && autoRejoin) { channels = Channels; }
             else { channels = self.options.channels || []; }
 
             channels.forEach(function(channel) {
