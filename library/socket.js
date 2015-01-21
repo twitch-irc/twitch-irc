@@ -89,7 +89,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
                 }
 
                 logger.info('Reconnecting in ' + (interval / 1000) + ' seconds..');
-                this.logger.dev('Reconnecting in ' + (interval / 1000) + ' seconds..');
+                logger.dev('Reconnecting in ' + (interval / 1000) + ' seconds..');
 
                 setTimeout(function () {
                     logger.event('reconnect');
@@ -98,6 +98,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
                     if (connection.retries !== -1) {
                         connection.retries--;
                     }
+                    errorEvent = false;
                     client.connect();
                 }, interval);
             }
@@ -105,9 +106,12 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
             if (reconnect && connection.retries === 0) {
                 logger.event('connectfail');
                 client.emit('connectfail');
+                errorEvent = false;
             }
 
-            errorEvent = false;
+            if (!reconnect) {
+                errorEvent = false;
+            }
         }
     });
 
