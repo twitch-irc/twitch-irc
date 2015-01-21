@@ -56,6 +56,7 @@ var client = function client(options) {
     var self = this;
 
     Events.EventEmitter.call(this);
+    self.setMaxListeners(0);
 
     var Logger           = require('./modules/logger');
     this.logger          = new Logger(options);
