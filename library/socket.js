@@ -26,8 +26,8 @@ var Errors  = require('./errors');
 var Net     = require('net');
 var Util    = require('util');
 
-var Retries = 1;
-
+var Retries    = 1;
+var errorEvent = false;
 /**
  * Create a new socket connection and handle socket errors.
  *
@@ -68,35 +68,46 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     };
 
     socket.on('error', function(err) {
-    	logger.error(Errors.get(err.code));
-        logger.event('disconnected');
-    	client.emit('disconnected', Errors.get(err.code));
-        logger.dev('Got disconnected from server: ' + Errors.get(err.code));
+        if (!errorEvent) {
+            errorEvent = true;
+            logger.error(Errors.get(err.code));
+            logger.event('disconnected');
+            client.emit('disconnected', Errors.get(err.code));
+            logger.dev('Got disconnected from server: ' + Errors.get(err.code));
 
-        var connection = options.connection || {};
-    	var reconnect = connection.reconnect || true;
+            var connection = options.connection || {};
+            var reconnect = connection.reconnect || true;
 
-    	if (connection.retries === undefined) { connection.retries = -1; }
-    	if (reconnect && (connection.retries >= 1 || connection.retries === -1)) {
-            Retries++;
-            var interval = 5000*Retries;
-            if (interval >= 90000) { interval = 90000; }
+            if (connection.retries === undefined) {
+                connection.retries = -1;
+            }
+            if (reconnect && (connection.retries >= 1 || connection.retries === -1)) {
+                Retries++;
+                var interval = 5000 * Retries;
+                if (interval >= 90000) {
+                    interval = 90000;
+                }
 
-            logger.info('Reconnecting in ' + (interval/1000) + ' seconds..');
-            this.logger.dev('Reconnecting in ' + (interval/1000) + ' seconds..');
+                logger.info('Reconnecting in ' + (interval / 1000) + ' seconds..');
+                this.logger.dev('Reconnecting in ' + (interval / 1000) + ' seconds..');
 
-	    	setTimeout(function(){
-                logger.event('reconnect');
-	    		client.emit('reconnect');
+                setTimeout(function () {
+                    logger.event('reconnect');
+                    client.emit('reconnect');
 
-	    		if (connection.retries !== -1) { connection.retries--; }
-	    		client.connect();
-	    	}, interval);
-    	}
+                    if (connection.retries !== -1) {
+                        connection.retries--;
+                    }
+                    client.connect();
+                }, interval);
+            }
 
-    	if (reconnect && connection.retries === 0) {
-            logger.event('connectfail');
-            client.emit('connectfail');
+            if (reconnect && connection.retries === 0) {
+                logger.event('connectfail');
+                client.emit('connectfail');
+            }
+
+            errorEvent = false;
         }
     });
 
