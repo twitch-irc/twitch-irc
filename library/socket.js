@@ -68,7 +68,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     };
 
     socket.on('error', function(err) {
-        if (!errorEvent) {
+        if (!errorEvent && err.code !== 'ENOTFOUND') {
             errorEvent = true;
             logger.error(Errors.get(err.code));
             logger.event('disconnected');
