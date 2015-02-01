@@ -666,7 +666,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                             var args    = message.params[1].split(' ');
                             args.shift();
 
-                            self.emit('command', username, {command: command, args: args || [], string: args.join(' ') || ''});
+                            self.emit('command', message.params[0], username, {command: command, args: args || [], string: args.join(' ') || ''});
                         }
                     }
                 });
