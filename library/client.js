@@ -595,7 +595,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.emit('twitchnotify', message.params[0], message.params[1]);
 
                 switch(true) {
-                    case (String(message.params[1]).contains('just subscribed!')):
+                    case (String(message.params[1]).contains('just subscribed!') && !String(message.params[1]).contains('in a row!')):
                         /**
                          * Someone has subscribed to a channel.
                          *
@@ -605,6 +605,18 @@ client.prototype._handleMessage = function _handleMessage(message) {
                          */
                         self.logger.event('subscription');
                         self.emit('subscription', message.params[0], message.params[1].split(' ')[0]);
+                        break;
+                    case (String(message.params[1]).contains('just subscribed!') && String(message.params[1]).contains('in a row!')):
+                        /**
+                         * Someone has shared his sub anniversary.
+                         *
+                         * @event subanniversary
+                         * @params {string} channel
+                         * @params {string} username
+                         * @params {integer} months
+                         */
+                        self.logger.event('subanniversary');
+                        self.emit('subanniversary', message.params[0], message.params[1].split(' ')[0], message.params[1].split(' ')[3]);
                         break;
                     default:
                         self.logger.dev('Unhandled message from TwitchNotify:');
