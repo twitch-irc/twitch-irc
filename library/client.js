@@ -158,7 +158,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
         Data.createTempUserData(username);
 
-        if (!Boolean(message.tags.color)) {
+        if (typeof message.tags.color === 'string') {
             self.emit('usercolor', username, message.tags.color);
             Data.tempUserData[username].color = message.tags.color;
         }
@@ -178,7 +178,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             Data.tempUserData[username].special.push('turbo');
         }
 
-        if (!Boolean(message.tags.user_type)) {
+        if (typeof message.tags.user_type === 'string') {
             self.emit('specialuser', username, message.tags.user_type);
             Data.tempUserData[username].special.push(message.tags.user_type);
         }
