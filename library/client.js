@@ -670,7 +670,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 var username = message.parseHostmaskFromPrefix().nickname.toLowerCase();
 
                 Data.createTempUserData(username);
-                if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && Utils.remHash(message.params[0]).toLowerCase() !== username) {
+                if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && Utils.remHash(message.params[0]).toLowerCase() !== username && !Tags) {
                     Data.tempUserData[username].special.push('mod');
                 }
                 if (Utils.remHash(message.params[0]).toLowerCase() === username) {
