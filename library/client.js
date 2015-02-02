@@ -152,8 +152,36 @@ client.prototype._handleMessage = function _handleMessage(message) {
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
 
-    if (!Utils.isEmpty(message.tags)) {
+    if (!Utils.isEmpty(message.tags) && Tags) {
+        var username = messageFrom;
         self.emit('tags', message.tags);
+
+        Data.createTempUserData(username);
+
+        if (!Boolean(message.tags.color)) {
+            self.emit('usercolor', username, message.tags.color);
+            Data.tempUserData[username].color = message.tags.color;
+        }
+
+        if (typeof message.tags.emotes === 'string') {
+            self.emit('emoteset', username, message.tags.emotes);
+            Data.tempUserData[username].emote = message.tags.emotes;
+        }
+
+        if (message.tags.subscriber === '1') {
+            self.emit('specialuser', username, 'subscriber');
+            Data.tempUserData[username].special.push('subscriber');
+        }
+
+        if (message.tags.turbo === '1') {
+            self.emit('specialuser', username, 'turbo');
+            Data.tempUserData[username].special.push('turbo');
+        }
+
+        if (!Boolean(message.tags.user_type)) {
+            self.emit('specialuser', username, message.tags.user_type);
+            Data.tempUserData[username].special.push(message.tags.user_type);
+        }
     }
 
     switch(message.command) {
@@ -450,7 +478,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         CommandError = '';
                         break;
 
-                    case (message.params[1].split(' ')[0] === 'SPECIALUSER'):
+                    case (message.params[1].split(' ')[0] === 'SPECIALUSER' && !Tags):
                         /**
                          * SPECIALUSER message by JTV.
                          *
@@ -463,7 +491,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         Data.tempUserData[username].special.push(value);
                         break;
 
-                    case (message.params[1].split(' ')[0] === 'USERCOLOR'):
+                    case (message.params[1].split(' ')[0] === 'USERCOLOR' && !Tags):
                         /**
                          * USERCOLOR message by JTV.
                          *
@@ -476,7 +504,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         Data.tempUserData[username].color = value;
                         break;
 
-                    case (message.params[1].split(' ')[0] === 'EMOTESET'):
+                    case (message.params[1].split(' ')[0] === 'EMOTESET' && !Tags):
                         /**
                          * EMOTESET message by JTV.
                          *
