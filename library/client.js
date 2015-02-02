@@ -165,7 +165,14 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
         if (typeof message.tags.emotes === 'string') {
             self.emit('emoteset', username, message.tags.emotes);
-            Data.tempUserData[username].emote = message.tags.emotes;
+
+            var emoticons = message.tags.emotes.split('/');
+            var emotes    = {};
+            for (var i = 0; i < emoticons.length; i++) {
+                var parts = emoticons[i].split(':');
+                emotes[parts[0]] = parts[1].split(',');
+            }
+            Data.tempUserData[username].emote = emotes;
         }
 
         if (message.tags.subscriber === '1') {

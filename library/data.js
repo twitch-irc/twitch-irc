@@ -36,7 +36,7 @@ function createTempUserData(username) {
 			username: username,
 			special: [],
 			color: '#696969',
-			emote: []
+			emote: {}
 		};
 	}
 }
