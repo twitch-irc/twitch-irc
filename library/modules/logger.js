@@ -25,8 +25,21 @@
 var Filesystem = require('fs');
 var Util       = require('util');
 
+var Details    = false;
 var Ignored    = [];
 var Timestamp  = true;
+
+function smartTrim(str, length, delim, appendix) {
+    if (str.length <= length) return str;
+
+    var trimmedStr = str.substr(0, length+delim.length);
+
+    var lastDelimIndex = trimmedStr.lastIndexOf(delim);
+    if (lastDelimIndex >= 0) trimmedStr = trimmedStr.substr(0, lastDelimIndex);
+
+    if (trimmedStr) trimmedStr += appendix;
+    return trimmedStr;
+}
 
 /**
  * Ensure that the directory exists.
@@ -63,6 +76,7 @@ function Logger(config) {
     var dev     = options.dev || false;
     var logging = config.logging || {};
 
+    Details = options.debugDetails || false;
     Ignored = options.debugIgnore || [];
 
     if (typeof logging !== 'object') { logging = {}; }
@@ -79,6 +93,7 @@ function Logger(config) {
         level: 'raw'
     };
 
+    if (debug && Details) { this.options.level = 'chat'; }
     if (dev) { this.options.level = 'dev'; }
     if (!debug) { this.options.level = 'crash'; }
 
@@ -94,7 +109,7 @@ function Logger(config) {
     }
 
     this.templates = {
-        chat:  '[:timestamp] chat  - :message',
+        chat:  '[:timestamp] \x1b[35mchat\x1b[39m  - :message',
         dev:   '\x1b[90m  :message\x1b[39m',
         raw:   '[:timestamp] \x1b[36mraw\x1b[39m   - :message',
         event: '[:timestamp] \x1b[32mevent\x1b[39m - :message',
@@ -133,8 +148,8 @@ Logger.prototype.tokens = {
  * @type {{chat: number, dev: number, raw: number, event: number, info: number, error: number, crash: number}}
  */
 Logger.prototype.levels = {
-    chat:  7,
-    dev:   6,
+    dev:  7,
+    chat:  6,
     raw:   5,
     event: 4,
     info:  3,
@@ -172,17 +187,21 @@ Logger.prototype.log = function(level, str) {
     if (arguments.length > 2) { str = Array.prototype.slice.call(arguments, 1).join(' '); }
     else if (str.toString() == '[object Arguments]') { str = Array.prototype.slice.call(str).join(' '); }
 
-    if (this.levels[level] === 6) { str = str.toUpperCase(); }
-    else { str = str.toLowerCase(); }
+    if (this.levels[level] === 7) { str = str.toUpperCase(); }
+    else {
+        if (this.levels[level] !== 6) {
+            str = str.toLowerCase();
+        }
+    }
 
     var message = this.message(level, str) + '\n';
-    if (!Timestamp && this.levels[level] !== 6) {
+    if (!Timestamp && this.levels[level] !== 7) {
         var string = message.split(' ');
         string.shift();
         message = string.join(' ');
     }
 
-    if (this.levels[level] !== 7) {
+    if (this.levels[level] !== 6) {
         if (this.levels[level] === 4) {
             if (Ignored.indexOf(str) < 0) { this.options.stream.write(message); }
         }
@@ -202,6 +221,11 @@ Logger.prototype.log = function(level, str) {
             this.options.stream.write(message);
         }
     }
+
+    if (this.levels[level] === 6) {
+        if (Details) { this.options.stream.write(smartTrim(message, 100, ' ', ' ...\r\n')); }
+    }
+
     if (this.options.wstream !== null) {
         if (this.levels[level] === 4) {
             if (str !== 'chat') {
