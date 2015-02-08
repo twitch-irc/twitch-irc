@@ -231,6 +231,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
             var twitchClient = options.tc || 3;
             var autoRejoin   = options.autoRejoin || true;
 
+            if (twitchClient >= 2) { Tags = true; }
             if (Tags) {
                 self.socket.crlfWrite('CAP REQ :twitch.tv/tags');
             } else {
@@ -460,6 +461,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         String(message.params[1]).contains('Invalid username:') ||
                         String(message.params[1]).contains('Upgrade to turbo or use one of these colors') ||
                         String(message.params[1]).contains('is not a moderator. Use the \'mods\' command to find a list of mode') ||
+                        String(message.params[1]).contains('Your message was not sent') ||
                         message.params[1] === 'Host target cannot be changed more than three times per 30 minutes.' ||
                         message.params[1] === 'UNAUTHORIZED JOIN' ||
                         message.params[1] === 'You need to tell me who you want to grant mod status to.') ||
@@ -734,7 +736,13 @@ client.prototype._fastReconnectMessage = function _fastReconnectMessage(message)
 
             var options      = self.options.options || {};
             var twitchClient = options.tc || 3;
-            self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
+
+            if (twitchClient >= 2) { Tags = true; }
+            if (Tags) {
+                self.socket.crlfWrite('CAP REQ :twitch.tv/tags');
+            } else {
+                self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
+            }
 
             var timer = 0;
             Channels.forEach(function(channel) {
