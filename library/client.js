@@ -66,6 +66,7 @@ var client = function client(options) {
     this.stream          = Stream().on('data', this._handleMessage.bind(this));
     this.socket          = null;
     this.moderators      = {};
+    this.myself          = '';
 
     this.gracefulReconnection = false;
 
@@ -151,6 +152,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
     var messageFrom = message.prefix;
     if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
+
+    if (message.command === '001') { self.myself = message.params[0]; }
 
     if (!Utils.isEmpty(message.tags) && Tags) {
         var username = messageFrom;
@@ -687,17 +690,17 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 }
                 Data.createChannelUserData(message.params[0], username, function(done) {
                     if (String(message.params[1]).startsWith('\u0001ACTION')) {
-                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                         self.logger.event('action');
                         self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                     } else if (String(message.params[1]).startsWith(' \x01ACTION')) {
-                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between(' \x01ACTION ', '\x01').s);
                         self.logger.event('action');
                         self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + String(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                        self.emit('action', message.params[0], Data.channelUserData[message.params[0]][username], String(message.params[1]).between(' \x01ACTION ', '\x01').s);
                     } else {
-                        self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                         self.logger.event('chat');
                         self.logger.chat('[' + message.params[0] + '] ' + username + ': ' + message.params[1]);
+                        self.emit('chat', message.params[0], Data.channelUserData[message.params[0]][username], message.params[1]);
                         if (message.params[1].charAt(0) === '!') {
                             var command = message.params[1].split(' ')[0].toLowerCase();
                             var args    = message.params[1].split(' ');

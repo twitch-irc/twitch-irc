@@ -222,8 +222,8 @@ Logger.prototype.log = function(level, str) {
         }
     }
 
-    if (this.levels[level] === 6) {
-        if (Details) { this.options.stream.write(smartTrim(message, 100, ' ', ' ...\r\n')); }
+    if (this.levels[level] === 6 && Details) {
+        this.options.stream.write(smartTrim(message, 100, ' ', ' ...\r\n'));
     }
 
     if (this.options.wstream !== null) {

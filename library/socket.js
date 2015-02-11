@@ -50,6 +50,9 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     socket.crlfWrite = function(data) {
         var string = Util.format.apply(this, arguments);
         this.write(string + '\r\n');
+        if (string.split(' ')[0] === 'PRIVMSG' && options.options.debugDetails) {
+            logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
+        }
     };
 
     socket.forceDisconnect = function(silent) {
