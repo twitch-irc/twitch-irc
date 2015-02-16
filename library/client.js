@@ -157,40 +157,43 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
     if (!Utils.isEmpty(message.tags) && Tags) {
         var username = messageFrom;
-        self.emit('tags', message.tags);
 
-        Data.createTempUserData(username);
+        if (username !== 'tmi.twitch.tv') {
+            self.emit('tags', message.tags);
 
-        if (typeof message.tags.color === 'string') {
-            self.emit('usercolor', username, message.tags.color);
-            Data.tempUserData[username].color = message.tags.color;
-        }
+            Data.createTempUserData(username);
 
-        if (typeof message.tags.emotes === 'string') {
-            self.emit('emoteset', username, message.tags.emotes);
-
-            var emoticons = message.tags.emotes.split('/');
-            var emotes    = {};
-            for (var i = 0; i < emoticons.length; i++) {
-                var parts = emoticons[i].split(':');
-                emotes[parts[0]] = parts[1].split(',');
+            if (typeof message.tags.color === 'string') {
+                self.emit('usercolor', username, message.tags.color);
+                Data.tempUserData[username].color = message.tags.color;
             }
-            Data.tempUserData[username].emote = emotes;
-        }
 
-        if (message.tags.subscriber === '1') {
-            self.emit('specialuser', username, 'subscriber');
-            Data.tempUserData[username].special.push('subscriber');
-        }
+            if (typeof message.tags.emotes === 'string') {
+                self.emit('emoteset', username, message.tags.emotes);
 
-        if (message.tags.turbo === '1') {
-            self.emit('specialuser', username, 'turbo');
-            Data.tempUserData[username].special.push('turbo');
-        }
+                var emoticons = message.tags.emotes.split('/');
+                var emotes = {};
+                for (var i = 0; i < emoticons.length; i++) {
+                    var parts = emoticons[i].split(':');
+                    emotes[parts[0]] = parts[1].split(',');
+                }
+                Data.tempUserData[username].emote = emotes;
+            }
 
-        if (typeof message.tags.user_type === 'string') {
-            self.emit('specialuser', username, message.tags.user_type);
-            Data.tempUserData[username].special.push(message.tags.user_type);
+            if (message.tags.subscriber === '1') {
+                self.emit('specialuser', username, 'subscriber');
+                Data.tempUserData[username].special.push('subscriber');
+            }
+
+            if (message.tags.turbo === '1') {
+                self.emit('specialuser', username, 'turbo');
+                Data.tempUserData[username].special.push('turbo');
+            }
+
+            if (typeof message.tags.user_type === 'string') {
+                self.emit('specialuser', username, message.tags.user_type);
+                Data.tempUserData[username].special.push(message.tags.user_type);
+            }
         }
     }
 
@@ -236,7 +239,8 @@ client.prototype._handleMessage = function _handleMessage(message) {
 
             if (twitchClient >= 2) { Tags = true; }
             if (Tags) {
-                self.socket.crlfWrite('CAP REQ :twitch.tv/tags');
+                self.socket.crlfWrite('CAP REQ :twitch.tv/tags twitch.tv/commands');
+                self.socket.crlfWrite('TWITCHCLIENT 4');
             } else {
                 self.socket.crlfWrite('TWITCHCLIENT ' + twitchClient);
             }
