@@ -890,6 +890,8 @@ client.prototype.part = function part(channel) {
     if (this.socket !== null) { this.socket.crlfWrite('PART ' + Utils.addHash(channel).toLowerCase()); }
 };
 
+client.prototype.leave = client.prototype.part;
+
 /**
  * Send a PING to the server.
  */
