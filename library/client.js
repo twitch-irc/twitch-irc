@@ -639,7 +639,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.emit('twitchnotify', message.params[0], message.params[1]);
 
                 switch(true) {
-                    case (String(message.params[1]).contains('just subscribed!') && !String(message.params[1]).contains('in a row!')):
+                    case (String(message.params[1]).contains('just subscribed') && !String(message.params[1]).contains('in a row')):
                         /**
                          * Someone has subscribed to a channel.
                          *
@@ -650,7 +650,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.logger.event('subscription');
                         self.emit('subscription', message.params[0], message.params[1].split(' ')[0]);
                         break;
-                    case (String(message.params[1]).contains('just subscribed!') && String(message.params[1]).contains('in a row!')):
+                    case (String(message.params[1]).contains('subscribed') && String(message.params[1]).contains('in a row')):
                         /**
                          * Someone has shared his sub anniversary.
                          *
