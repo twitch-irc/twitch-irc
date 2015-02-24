@@ -26,6 +26,7 @@ var Data     = require('./data');
 var Events   = require('events');
 var Locally  = require('locallydb');
 var Package  = require('./../package.json');
+var Parse    = require('irc-prefix-parser')
 var Request  = require('request');
 var Servers  = require('./servers');
 var Socket   = require('./socket');
@@ -149,7 +150,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
     if (message.command.match(/^[0-9]+$/g)) { self.logger.raw(message.command + ': ' + message.params[1]); }
 
     var messageFrom = message.prefix;
-    if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
+    if (message.prefix.indexOf('@') >= 0) { messageFrom = Parse(messageFrom).nick; }
 
     if (message.command === '001') { self.myself = message.params[0]; }
 
@@ -269,7 +270,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                 self.Channels.push(Utils.remHash(message.params[0]).toLowerCase());
                 self.Channels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
             }
-            self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            self.emit('join', message.params[0], Parse(message.prefix).nick.toLowerCase());
             if (self.options.channels.length >= 1 && Utils.remHash(message.params[0]).toLowerCase() === Utils.remHash(self.options.channels[self.options.channels.length-1]).toLowerCase()) {
                 self.Joined = true;
             }
@@ -288,7 +289,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} username
              */
             self.logger.event('part');
-            self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            self.emit('part', message.params[0], Parse(messageFrom).nick.toLowerCase());
 
             if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
 
@@ -681,7 +682,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
              * @params {string} message
              */
             else {
-                var username = message.parseHostmaskFromPrefix().nickname.toLowerCase();
+                var username = Parse(message.prefix).nick.toLowerCase();
 
                 Data.createTempUserData(username);
                 if (self.moderators[message.params[0]].indexOf(username.toLowerCase()) >= 0 && Utils.remHash(message.params[0]).toLowerCase() !== username && !self.Tags) {
@@ -723,7 +724,7 @@ client.prototype._fastReconnectMessage = function _fastReconnectMessage(message)
     if (message.command.match(/^[0-9]+$/g)) { self.logger.raw('%s: %s', message.command, message.params[1]); }
 
     var messageFrom = message.prefix;
-    if (message.prefix.indexOf('@') >= 0) { messageFrom = message.parseHostmaskFromPrefix().nickname; }
+    if (message.prefix.indexOf('@') >= 0) { messageFrom = Parse(messageFrom).nick; }
 
     switch(message.command) {
         case 'PING':
@@ -758,11 +759,11 @@ client.prototype._fastReconnectMessage = function _fastReconnectMessage(message)
             break;
 
         case 'JOIN':
-            self.emit('join', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            self.emit('join', message.params[0], Parse(messageFrom).nick.toLowerCase());
             break;
 
         case 'PART':
-            self.emit('part', message.params[0], message.parseHostmaskFromPrefix().nickname.toLowerCase());
+            self.emit('part', message.params[0], Parse(messageFrom).nick.toLowerCase());
             break;
 
         case 'NOTICE':

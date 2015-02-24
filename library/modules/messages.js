@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-var parseMessage = require("irc-message").parseMessage;
+var parseMessage = require("irc-message").parse;
 var lstream = require("lstream");
 var through = require("through");
 
