@@ -91,6 +91,13 @@ client.addListener('chat', function (channel, user, message) {
 - [Supports all Twitch commands](https://github.com/Schmoopiie/twitch-irc/wiki/Commands).
 - [Supports all Twitch API endpoints and OAuth 2.0](https://github.com/Schmoopiie/twitch-irc/wiki/Twitch-API).
 
+## Contributors
+
+- Schmoopiie - https://github.com/Schmoopiie
+- enilsen16 - https://github.com/enilsen16
+- Bardalph - https://github.com/Bardalph
+- Lange - https://github.com/Lange
+
 ## Contributing Guidelines
 
 Please review the [guidelines for contributing](https://github.com/Schmoopiie/twitch-irc/wiki/Contributing) to this repository.
