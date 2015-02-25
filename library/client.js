@@ -887,7 +887,6 @@ client.prototype.join = function join(channel) {
  * @params {string} channel
  */
 client.prototype.part = function part(channel) {
-    console.log(this.Channels);
     if (this.socket !== null && this.Channels.indexOf(Utils.remHash(channel).toLowerCase()) >= 0) { this.socket.crlfWrite('PART ' + Utils.addHash(channel).toLowerCase()); }
 };
 
