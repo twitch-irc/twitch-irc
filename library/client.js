@@ -150,7 +150,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
     if (message.command.match(/^[0-9]+$/g)) { self.logger.raw(message.command + ': ' + message.params[1]); }
 
     var messageFrom = message.prefix;
-    if (message.prefix.indexOf('@') >= 0) { messageFrom = Parse(messageFrom).nick; }
+    if (message.prefix && message.prefix.indexOf('@') >= 0) { messageFrom = Parse(messageFrom).nick; }
 
     if (message.command === '001') { self.myself = message.params[0]; }
 
@@ -441,7 +441,7 @@ client.prototype._handleMessage = function _handleMessage(message) {
                         self.emit('hosted', message.params[0], parts[0], parts[6]);
                         break;
 
-                    case (String(message.params[1]).contains('The moderators of this room are:')):
+                    case (String(message.params[1]).contains('The moderators of this channel are:')):
                         /**
                          * Received mods list on a channel.
                          * The client needs to send the /mods command to a channel to receive this message.
@@ -864,7 +864,7 @@ client.prototype.disconnect = function disconnect() {
  * @returns {boolean}
  */
 client.prototype.isMod = function isMod(channel, username) {
-    if (this.moderators[Utils.addHash(channel)].indexOf(username.toLowerCase()) >= 0) {
+    if (this.moderators[Utils.remHash(channel)].indexOf(username.toLowerCase()) >= 0) {
         return true;
     }
     return false;
@@ -878,7 +878,7 @@ client.prototype.clearChannels = function clearChannels() { this.Channels = []; 
  * @params {string} channel
  */
 client.prototype.join = function join(channel) {
-    if (this.socket !== null && this.Channels.indexOf(Utils.addHash(channel).toLowerCase()) === -1) { this.socket.crlfWrite('JOIN ' + Utils.addHash(channel).toLowerCase()); }
+    if (this.socket !== null && this.Channels.indexOf(Utils.remHash(channel).toLowerCase()) === -1) { this.socket.crlfWrite('JOIN ' + Utils.addHash(channel).toLowerCase()); }
 };
 
 /**
@@ -887,7 +887,8 @@ client.prototype.join = function join(channel) {
  * @params {string} channel
  */
 client.prototype.part = function part(channel) {
-    if (this.socket !== null && this.Channels.indexOf(Utils.addHash(channel).toLowerCase()) >= 0) { this.socket.crlfWrite('PART ' + Utils.addHash(channel).toLowerCase()); }
+    console.log(this.Channels);
+    if (this.socket !== null && this.Channels.indexOf(Utils.remHash(channel).toLowerCase()) >= 0) { this.socket.crlfWrite('PART ' + Utils.addHash(channel).toLowerCase()); }
 };
 
 client.prototype.leave = client.prototype.part;
@@ -1104,8 +1105,15 @@ client.prototype.commercial = function commercial(channel, seconds, cb) {
  * @params {string} channel
  */
 client.prototype.mods = function mods(channel, cb) {
-    if (this.socket !== null) { this.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' :.mods'); }
-    if (typeof cb === 'function') { setTimeout(function() { this.ModsList.length !== 0 && cb(this.ModsList) && cb([]); }, 250); }
+    var self = this;
+    if (self.socket !== null) { self.socket.crlfWrite('PRIVMSG ' + Utils.addHash(channel).toLowerCase() + ' :.mods'); }
+    if (typeof cb === 'function') {
+        setTimeout(function() {
+            if (self.ModsList.length !== 0) {
+                cb(self.ModsList);
+            } else { cb([]); }
+        }, 250);
+    }
 };
 
 /**
