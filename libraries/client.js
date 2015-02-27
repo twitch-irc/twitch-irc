@@ -24,9 +24,8 @@
 
 var Data     = require('./data');
 var Events   = require('events');
-var Locally  = require('locallydb');
 var Package  = require('./../package.json');
-var Parse    = require('irc-prefix-parser')
+var Parse    = require('irc-prefix-parser');
 var Request  = require('request');
 var Servers  = require('./servers');
 var Socket   = require('./socket');
@@ -57,8 +56,6 @@ var client = function client(options) {
     this.moderators      = {};
     this.myself          = '';
     this.Channels        = [];
-    this.Database        = null;
-    this.DBPath          = './database';
     this.Latency         = new Date();
     this.Server          = 'irc.twitch.tv';
     this.Tags            = false;
@@ -74,7 +71,6 @@ var client = function client(options) {
     this.logger.dev('Memory heap total: ' + process.memoryUsage().heapTotal);
     this.logger.dev('Memory heap used : ' + process.memoryUsage().heapUsed);
 
-    this.DBPath = (this.options.options && (typeof this.options.options.database != 'undefined')) ? this.options.options.database : './database';
     this.Tags   = (this.options.options && (typeof this.options.options.tags != 'undefined')) ? this.options.options.tags : false;
 
     var checkUpdates = (this.options.options && (typeof this.options.options.checkUpdates !== 'undefined')) ? this.options.options.checkUpdates : true;
@@ -1126,16 +1122,6 @@ client.prototype.raw = function raw(message) {
 };
 
 /**
- * Loading the database methods..
- *
- * @type {exports}
- */
-var databaseMethods = require('./database');
-for(var methodName in databaseMethods) {
-    client.prototype[methodName]=databaseMethods[methodName];
-}
-
-/**
  * Loading the APIs..
  *
  * @type {"fs"}
@@ -1160,12 +1146,5 @@ fs.readdirSync(__dirname + '/utils').forEach(function(file) {
         client.prototype.utils[methodName]=utilsMethods[methodName];
     }
 });
-
-exports.getDatabase = function() {
-    if (this.Database === null) {
-        this.Database = new Locally(this.DBPath);
-    }
-    return this.Database;
-};
 
 module.exports = client;

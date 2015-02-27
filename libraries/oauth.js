@@ -23,16 +23,13 @@
  */
 
 var Express  = require('express');
-var Locally  = require('locallydb');
 var Method   = require('method-override');
 var Parser   = require('body-parser');
 var Passport = require('passport');
-var Session  = require('express-session')
+var Session  = require('express-session');
 var Strategy = require('passport-twitch').Strategy;
 
 var App      = Express();
-var Database = null;
-var DBPath   = './database';
 
 /**
  * Creating a web server and handle OAuth 2.0 for Twitch.
@@ -54,8 +51,6 @@ module.exports = function(client, config) {
         var redirect     = this.options.oauth.redirect || '';
         var scopes       = this.options.oauth.scopes || 'user_read';
         var views        = this.options.oauth.views || __dirname + '/../oauth/views';
-
-        DBPath = (typeof options.database != 'undefined') ? options.database : './database';
 
         if (clientID.trim() === '' || clientSecret.trim() === '' || scopes.trim() === '') {
             // Not using OAuth..
@@ -81,6 +76,7 @@ module.exports = function(client, config) {
                 },
                 function (accessToken, refreshToken, profile, done) {
                     process.nextTick(function () {
+                        /*
                         if (Database === null) {
                             Database = new Locally(DBPath);
                         }
@@ -91,6 +87,7 @@ module.exports = function(client, config) {
                             collection.insert({channel: profile.username.toLowerCase(), token: accessToken, scopes: scopes});
                         }
                         collection.save();
+                        */
                         profile.token = accessToken;
                         profile.scopes = scopes;
                         return done(null, profile);

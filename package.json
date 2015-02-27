@@ -46,7 +46,6 @@
     "inquirer": "^0.8.0",
     "irc-message": "^3.0.0",
     "irc-prefix-parser": "^1.0.0",
-    "locallydb": "^0.0.5",
     "lstream": "^0.0.4",
     "method-override": "^2.3.1",
     "passport": "^0.2.1",
