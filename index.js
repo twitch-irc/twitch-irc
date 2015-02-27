@@ -22,4 +22,4 @@
  * THE SOFTWARE.
  */
 
-module.exports={client:require("./library/client")};
+module.exports={client:require("./libraries/client")};
