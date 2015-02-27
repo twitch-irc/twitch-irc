@@ -22,11 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * Capitalize username.
- *
- * Documentation: http://www.schmoopiie.com/twitch-irc/Utils/Capitalize
- */
+/* Capitalize username */
 var request = require('request');
 
 module.exports = {

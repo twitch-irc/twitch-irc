@@ -22,13 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * Simple raffle manager.
- *
- * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#raffle
- *
- * @type {{utils: {raffle: {enter: enter, pick: pick, reset: reset, count: count, isParticipating: isParticipating}}}}
- */
+/* Simple raffle manager */
 var channels = {};
 
 module.exports = {

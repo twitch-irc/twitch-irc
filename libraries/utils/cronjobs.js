@@ -22,13 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * Cron jobs management.
- *
- * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#cronjobs
- *
- * @type {{cronjobs: cron}}
- */
+/* Cron jobs management */
 var Cron = require('cron').CronJob;
 
 module.exports = {

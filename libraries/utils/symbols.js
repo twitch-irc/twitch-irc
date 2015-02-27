@@ -22,13 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * Percentage of a string that is symbol.
- *
- * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#symbols
- *
- * @type {{symbols: symbols}}
- */
+/* Percentage of a string that is symbol */
 module.exports = {
     symbols: function(string) {
         var count = 0;

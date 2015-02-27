@@ -22,21 +22,16 @@
  * THE SOFTWARE.
  */
 
-var Net         = require('net');
+var net         = require('net');
 
-var Count       = 0;
-var Results     = [];
-var Unavailable = [];
+var count       = 0;
+var results     = [];
+var unavailable = [];
 
-/**
- * Send a PING request on a specific port.
- *
- * @param options
- * @param cb
- */
+/* Send a PING request on a specific port */
 function pingServer(options, cb) {
-    Count = 0;
-    Results = [];
+    count = 0;
+    results = [];
 
     options.address  = options.address || 'localhost';
     options.port     = options.port || 80;
@@ -46,21 +41,16 @@ function pingServer(options, cb) {
     connectServer(options, cb);
 }
 
-/**
- * Check if the connection is successful.
- *
- * @param options
- * @param cb
- */
+/* Check if the connection is successful */
 function checkConnection(options, cb) {
-    if (Count < options.attempts) {
+    if (count < options.attempts) {
         connectServer(options, callback);
     } else {
-        var avg = Results.reduce(function(prev, curr) { return prev + curr.time; }, 0);
-        var max = Results.reduce(function(prev, curr) { return (prev > curr.time) ? prev : curr.time; }, Results[0].time);
-        var min = Results.reduce(function(prev, curr) { return (prev < curr.time) ? prev : curr.time; }, Results[0].time);
+        var avg = results.reduce(function(prev, curr) { return prev + curr.time; }, 0);
+        var max = results.reduce(function(prev, curr) { return (prev > curr.time) ? prev : curr.time; }, results[0].time);
+        var min = results.reduce(function(prev, curr) { return (prev < curr.time) ? prev : curr.time; }, results[0].time);
 
-        avg = avg / Results.length;
+        avg = avg / results.length;
         var out = {
             address:  options.address,
             port:     options.port,
@@ -68,68 +58,57 @@ function checkConnection(options, cb) {
             avg:      avg,
             max:      max,
             min:      min,
-            results:  Results
+            results:  results
         };
 
         cb(undefined, out);
     }
 }
 
-/**
- * Connect to the server.
- *
- * @param options
- * @param cb
- */
+/* Connect to the server */
 function connectServer(options, cb) {
-    var socket = new Net.Socket();
+    var socket = new net.Socket();
     var start = process.hrtime();
 
     socket.connect(options.port, options.address, function() {
         var time_arr = process.hrtime(start);
         var time = (time_arr[0] * 1e9 + time_arr[1]) / 1e6;
-        Results.push({
-            seq:  Count,
+        results.push({
+            seq:  count,
             time: time
         });
         socket.destroy();
-        Count++;
+        count++;
         checkConnection(options, cb);
     });
 
     socket.on('error', function(e) {
-        Results.push({
-            seq:  Count,
+        results.push({
+            seq:  count,
             time: undefined,
             err:  e
         });
         socket.destroy();
-        Count++;
+        count++;
         checkConnection(options, cb);
     });
 
     socket.setTimeout(options.timeout, function() {
-        Results.push({
-            seq:  Count,
+        results.push({
+            seq:  count,
             time: undefined,
             err:  Error('Request timeout')
         });
         socket.destroy();
-        Count++;
+        count++;
         checkConnection(options, cb);
     });
 }
 
-/**
- * Probe a server on a specific port.
- *
- * @param address
- * @param port
- * @param callback
- */
+/* Probe a server on a specific port */
 function probeServer(address, port, callback) {
     address = address || 'localhost';
-    port = port || 443;
+    port    = port || 443;
 
     pingServer({
         address:  address,
@@ -208,18 +187,12 @@ var serverList = {
     }
 };
 
-/**
- * Custom Twitch server pooling.
- *
- * @param type
- * @param server
- * @param port
- * @returns {string}
- */
+/* Custom Twitch server pooling */
 var getServer = function getServer(type, server, port, logger, cb) {
-    var serverType = type || 'chat';
+    var serverType    = type || 'chat';
     var serverAddress = server || null;
-    var serverPort = port || 443;
+    var serverPort    = port || 443;
+
     if (serverAddress === null) {
         var serverTypes = ['chat', 'events', 'groups'];
         if (serverTypes.indexOf(serverType) === -1) {
@@ -237,14 +210,14 @@ var getServer = function getServer(type, server, port, logger, cb) {
         function findServer(cb) {
             function scan() {
                 var serverAddr = serverList[serverType][serverPort][Math.floor(Math.random() * (serverList[serverType][serverPort].length))];
-                if (Unavailable.indexOf(serverAddr) >= 0) {
+                if (unavailable.indexOf(serverAddr) >= 0) {
                     scan();
                 } else {
                     probeServer(serverAddr, serverPort, function (err, available) {
                         if (!available || err) {
-                            Unavailable.push(serverAddr);
-                            if (Unavailable.length > serverList[serverType][serverPort].length-1) {
-                                Unavailable = [];
+                            unavailable.push(serverAddr);
+                            if (unavailable.length > serverList[serverType][serverPort].length-1) {
+                                unavailable = [];
                                 logger.error('No Twitch servers available at this time, retrying in 60 seconds..');
                                 setTimeout(function(){
                                     scan();
@@ -253,7 +226,7 @@ var getServer = function getServer(type, server, port, logger, cb) {
                                 return scan();
                             }
                         } else {
-                            Unavailable = [];
+                            unavailable = [];
                             return cb(serverAddr);
                         }
                     });

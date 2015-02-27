@@ -22,13 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * Percentage of a string that is uppercase.
- *
- * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#uppercase
- *
- * @type {{utils: {uppercase: uppercase}}}
- */
+/* Percentage of a string that is uppercase */
 module.exports = {
     uppercase: function(string) {
         var chars = string.length;

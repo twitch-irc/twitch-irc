@@ -22,13 +22,7 @@
  * THE SOFTWARE.
  */
 
-/**
- * The levenshtein distance is a string metric for measuring the difference between two sequences.
- *
- * Documentation: https://github.com/Schmoopiie/twitch-irc/wiki/Utils#levenshtein
- *
- * @type {{utils: {levenshtein: levenshtein}}}
- */
+/* The levenshtein distance is a string metric for measuring the difference between two sequences */
 module.exports = {
     levenshtein: function(s1, s2, caseSensitive) {
         var cost_ins = 1;

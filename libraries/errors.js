@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-/**
- * Explain in better words what is happening when getting
- * disconnected from server.
- */
 var errors = (function() {
     var private = {
         'EADDRINUSE': 'Address already in use.',

@@ -25,11 +25,7 @@
 var tempUserData    = {};
 var channelUserData = {};
 
-/**
- * Create a temporary user object with default values.
- *
- * @param username
- */
+/* Create a temporary user object with default values */
 function createTempUserData(username) {
 	if (!tempUserData[username]) {
 		tempUserData[username] = {
@@ -41,13 +37,7 @@ function createTempUserData(username) {
 	}
 }
 
-/**
- * Insert the user object into the channel object.
- *
- * @param channel
- * @param username
- * @param cb
- */
+/* Insert the user object into the channel object */
 function createChannelUserData(channel, username, cb) {
 	if (!channelUserData[channel]) { channelUserData[channel] = {}; }
 	if (!tempUserData[username]) { createTempUserData(username); }
@@ -58,7 +48,7 @@ function createChannelUserData(channel, username, cb) {
 	cb();
 }
 
-exports.tempUserData = tempUserData;
-exports.createTempUserData = createTempUserData;
+exports.tempUserData          = tempUserData;
+exports.createTempUserData    = createTempUserData;
 exports.createChannelUserData = createChannelUserData;
-exports.channelUserData = channelUserData;
+exports.channelUserData       = channelUserData;

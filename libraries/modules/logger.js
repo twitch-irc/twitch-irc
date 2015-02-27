@@ -22,12 +22,12 @@
  * THE SOFTWARE.
  */
 
-var Filesystem = require('fs');
-var Util       = require('util');
+var filesystem = require('fs');
+var util       = require('util');
 
-var Details    = false;
-var Ignored    = [];
-var Timestamp  = true;
+var details    = false;
+var ignored    = [];
+var timestamp  = true;
 
 function smartTrim(str, length, delim, appendix) {
     if (str.length <= length) return str;
@@ -41,20 +41,14 @@ function smartTrim(str, length, delim, appendix) {
     return trimmedStr;
 }
 
-/**
- * Ensure that the directory exists.
- *
- * @param path
- * @param mask
- * @param cb
- */
+/* Ensure that the directory exists */
 function ensureExists(path, mask, cb) {
     if (typeof mask == 'function') {
         cb = mask;
         mask = 0777;
     }
 
-    Filesystem.mkdir(path, mask, function(err) {
+    filesystem.mkdir(path, mask, function(err) {
         if (err) {
             if (err.code == 'EEXIST') cb(null);
             else cb(err);
@@ -62,12 +56,7 @@ function ensureExists(path, mask, cb) {
     });
 }
 
-/**
- * Our awesome logger.
- *
- * @param config
- * @constructor
- */
+/* Our awesome logger */
 function Logger(config) {
     var self    = this;
     var config  = config || {};
@@ -76,8 +65,8 @@ function Logger(config) {
     var dev     = options.dev || false;
     var logging = config.logging || {};
 
-    Details = options.debugDetails || false;
-    Ignored = options.debugIgnore || [];
+    details = options.debugDetails || false;
+    ignored = options.debugIgnore || [];
 
     if (typeof logging !== 'object') { logging = {}; }
 
@@ -85,7 +74,7 @@ function Logger(config) {
     var rewrite = typeof logging.rewrite !== 'undefined' ? logging.rewrite : true;
     var chat    = typeof logging.chat !== 'undefined' ? logging.chat : false;
 
-    Timestamp = typeof logging.timestamp !== 'undefined' ? logging.timestamp : true;
+    timestamp = typeof logging.timestamp !== 'undefined' ? logging.timestamp : true;
 
     this.options = {
         stream: process.stdout,
@@ -93,7 +82,7 @@ function Logger(config) {
         level: 'raw'
     };
 
-    if (debug && Details) { this.options.level = 'chat'; }
+    if (debug && details) { this.options.level = 'chat'; }
     if (dev) { this.options.level = 'dev'; }
     if (!debug) { this.options.level = 'crash'; }
 
@@ -101,7 +90,7 @@ function Logger(config) {
         ensureExists('./logs', function(err) {
             if (!err) {
                 var flag = rewrite ? 'w' : 'a';
-                var stream = Filesystem.createWriteStream('./logs/status.log', { flags: flag });
+                var stream = filesystem.createWriteStream('./logs/status.log', { flags: flag });
                 self.options.wstream = stream;
                 if (chat) { self.options.level = 'chat'; }
             }
@@ -120,11 +109,7 @@ function Logger(config) {
     };
 }
 
-/**
- * Tokens used in templates.
- *
- * @type {{timestamp: timestamp}}
- */
+/* Tokens used in templates */
 Logger.prototype.tokens = {
     timestamp: function() {
         var str         = '';
@@ -142,11 +127,7 @@ Logger.prototype.tokens = {
     }
 };
 
-/**
- * Custom levels.
- *
- * @type {{chat: number, dev: number, raw: number, event: number, info: number, error: number, crash: number}}
- */
+/* Custom levels */
 Logger.prototype.levels = {
     dev:  7,
     chat:  6,
@@ -157,13 +138,7 @@ Logger.prototype.levels = {
     crash: 1
 };
 
-/**
- * Replace the message and it's tokens.
- *
- * @param level
- * @param str
- * @returns {XML|*|string|void}
- */
+/* Replace the message and it's tokens */
 Logger.prototype.message = function(level, str) {
     var message = this.templates[level];
     for (var token in this.tokens) {
@@ -175,12 +150,7 @@ Logger.prototype.message = function(level, str) {
     return message.replace(':message', str);
 };
 
-/**
- * Send the message to the stream(s).
- *
- * @param level
- * @param str
- */
+/* Send the message to the stream(s) */
 Logger.prototype.log = function(level, str) {
     if (this.levels[level] > this.levels[this.options.level]) return;
 
@@ -195,7 +165,7 @@ Logger.prototype.log = function(level, str) {
     }
 
     var message = this.message(level, str) + '\n';
-    if (!Timestamp && this.levels[level] !== 7) {
+    if (!timestamp && this.levels[level] !== 7) {
         var string = message.split(' ');
         string.shift();
         message = string.join(' ');
@@ -203,26 +173,26 @@ Logger.prototype.log = function(level, str) {
 
     if (this.levels[level] !== 6) {
         if (this.levels[level] === 4) {
-            if (Ignored.indexOf(str) < 0) { this.options.stream.write(message); }
+            if (ignored.indexOf(str) < 0) { this.options.stream.write(message); }
         }
         else if (this.levels[level] === 5) {
-            if (Ignored.indexOf('raw') < 0) { this.options.stream.write(message); }
+            if (ignored.indexOf('raw') < 0) { this.options.stream.write(message); }
         }
         else if (this.levels[level] === 3) {
-            if (Ignored.indexOf('info') < 0) { this.options.stream.write(message); }
+            if (ignored.indexOf('info') < 0) { this.options.stream.write(message); }
         }
         else if (this.levels[level] === 2) {
-            if (Ignored.indexOf('error') < 0) { this.options.stream.write(message); }
+            if (ignored.indexOf('error') < 0) { this.options.stream.write(message); }
         }
         else if (this.levels[level] === 1) {
-            if (Ignored.indexOf('crash') < 0) { this.options.stream.write(message); }
+            if (ignored.indexOf('crash') < 0) { this.options.stream.write(message); }
         }
         else {
             this.options.stream.write(message);
         }
     }
 
-    if (this.levels[level] === 6 && Details) {
+    if (this.levels[level] === 6 && details) {
         this.options.stream.write(smartTrim(message, 100, ' ', ' ...\r\n'));
     }
 
@@ -237,15 +207,10 @@ Logger.prototype.log = function(level, str) {
     }
 };
 
-/**
- * Logger prototypes.
- *
- * @param str
- * @returns {*}
- */
+/* Logger prototypes */
 Logger.prototype.chat    = function(str) { return this.log('chat', arguments) };
 Logger.prototype.dev     = function(str) { return this.log('dev', arguments) };
-Logger.prototype.inspect = function(obj) { return this.log('info', Util.inspect(obj)); };
+Logger.prototype.inspect = function(obj) { return this.log('info', util.inspect(obj)); };
 Logger.prototype.raw     = function(str) { return this.log('raw', arguments); };
 Logger.prototype.event   = function(str) { return this.log('event', arguments) };
 Logger.prototype.info    = function(str) { return this.log('info', arguments) };
