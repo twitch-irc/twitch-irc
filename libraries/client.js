@@ -1121,24 +1121,12 @@ client.prototype.raw = function raw(message) {
 };
 
 /**
- * Loading the APIs..
- *
- * @type {"fs"}
- */
-var fs = require("fs");
-client.prototype.api = {};
-fs.readdirSync(__dirname + '/api').forEach(function(file) {
-    var apiMethods = require(__dirname + '/api/' + file);
-    for(var methodName in apiMethods) {
-        client.prototype.api[methodName]=apiMethods[methodName];
-    }
-});
-
-/**
  * Loading all utils..
  * @type {{}}
  */
 client.prototype.utils = {};
+
+var fs = require("fs");
 fs.readdirSync(__dirname + '/utils').forEach(function(file) {
     var utilsMethods = require(__dirname + '/utils/' + file);
     for(var methodName in utilsMethods) {
