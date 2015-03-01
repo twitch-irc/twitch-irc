@@ -25,7 +25,6 @@
 var data     = require('./data');
 var events   = require('events').EventEmitter;
 var pkg      = require('./../package.json');
-var parse    = require('irc-prefix-parser');
 var q        = require('q');
 var request  = require('request');
 var servers  = require('./servers');
@@ -47,7 +46,7 @@ var client = function(options) {
     self.options.options    = self.options.options || {};
     self.options.connection = self.options.connection || {};
     self.reconnect          = (typeof self.options.connection.reconnect != 'undefined') ? self.options.connection.reconnect : true;
-    self.stream             = stream.createStream().on('data', this._handleMessage.bind(this));
+    self.stream             = stream.createStream({ parsePrefix: true }).on('data', this._handleMessage.bind(this));
     self.socket             = null;
     self.connected          = false;
     self.currentChannels    = [];
@@ -108,11 +107,8 @@ client.prototype._handleMessage = function(message) {
         self.emit('names', message.params[2], message.params[3].split(' '));
     }
 
-    // Sometimes, messages don't have a prefix..
-    if (!message.prefix || message.prefix === null) { message.prefix = ''; }
-
     // Handling messages with no prefix..
-    if (message.prefix === '') {
+    if (message.prefix === null) {
         switch(message.command) {
             /* Received PING from server */
             case 'PING':
@@ -131,7 +127,7 @@ client.prototype._handleMessage = function(message) {
     }
 
     // Handling messages from tmi.twitch.tv
-    else if (message.prefix === 'tmi.twitch.tv') {
+    else if (message.prefix.isServer) {
         switch(message.command) {
             /* Got the bot username from server */
             case '001':
@@ -220,7 +216,7 @@ client.prototype._handleMessage = function(message) {
     }
 
     // Handling messages from jtv..
-    else if (message.prefix === 'jtv' || parse(message.prefix).nick === 'jtv') {
+    else if (message.prefix.raw === 'jtv' || message.prefix.nick === 'jtv') {
         switch (message.command) {
             /* Someone got modded or un-modded from channel */
             case 'MODE':
@@ -323,7 +319,7 @@ client.prototype._handleMessage = function(message) {
     }
 
     // Handling messages from TwitchNotify..
-    else if (message.prefix === 'twitchnotify' || parse(message.prefix).nick === 'twitchnotify') {
+    else if (message.prefix.raw === 'twitchnotify' || message.prefix.nick === 'twitchnotify') {
         switch(true) {
             /* Someone has subscribed to a channel */
             case string(message.params[1]).contains('just subscribed'):
@@ -359,7 +355,7 @@ client.prototype._handleMessage = function(message) {
                 }
 
                 // Emit join and joinChannel..
-                self.emit('join', message.params[0], parse(message.prefix).nick);
+                self.emit('join', message.params[0], message.prefix.nick);
                 break;
 
             /* User has left a channel */
@@ -369,7 +365,7 @@ client.prototype._handleMessage = function(message) {
                 // Preparing the mods object to be filled..
                 if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
 
-                self.emit('part', message.params[0], parse(message.prefix).nick.toLowerCase());
+                self.emit('part', message.params[0], message.prefix.nick.toLowerCase());
 
                 // Remove the channels from the currentChannels..
                 var index = self.currentChannels.indexOf(utils.remHash(message.params[0]).toLowerCase());
@@ -379,31 +375,31 @@ client.prototype._handleMessage = function(message) {
 
             /* Received message on a channel */
             case 'PRIVMSG':
-                _handleTags(parse(message.prefix).nick, message.tags);
+                _handleTags(message.prefix.nick, message.tags);
 
                 // If channel is the same as the username sending the message, it is the broadcaster..
-                if (parse(message.prefix).nick === utils.remHash(message.params[0])) { data.tempUserData[parse(message.prefix).nick].special.push('broadcaster'); }
+                if (message.prefix.nick === utils.remHash(message.params[0])) { data.tempUserData[message.prefix.nick].special.push('broadcaster'); }
 
                 // Add the temporary user data to the channel data..
-                data.createChannelUserData(message.params[0], parse(message.prefix).nick, function(err) {
+                data.createChannelUserData(message.params[0], message.prefix.nick, function(err) {
                     if (!err) {
                         // First kind of action message..
                         if (string(message.params[1]).startsWith('\u0001ACTION')) {
                             self.logger.event('action');
-                            self.logger.chat('[' + message.params[0] + '] ' + parse(message.prefix).nick + ': ' + string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
-                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][parse(message.prefix).nick], string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
                         }
                         // Second kind of action message..
                         else if (string(message.params[1]).startsWith(' \x01ACTION')) {
                             self.logger.event('action');
-                            self.logger.chat('[' + message.params[0] + '] ' + parse(message.prefix).nick + ': ' + string(message.params[1]).between(' \x01ACTION ', '\x01').s);
-                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][parse(message.prefix).nick], string(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], string(message.params[1]).between(' \x01ACTION ', '\x01').s);
                         }
                         // Regular chat message..
                         else {
                             self.logger.event('chat');
-                            self.logger.chat('[' + message.params[0] + '] ' + parse(message.prefix).nick + ': ' + message.params[1]);
-                            self.emit('chat', message.params[0], data.channelUserData[message.params[0]][parse(message.prefix).nick], message.params[1]);
+                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + message.params[1]);
+                            self.emit('chat', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], message.params[1]);
                         }
                     }
                 });
@@ -509,12 +505,12 @@ client.prototype._fastReconnectMessage = function(message) {
         switch(message.command) {
             /* User has joined a channel */
             case 'JOIN':
-                self.emit('join', message.params[0], parse(message.prefix).nick.toLowerCase());
+                self.emit('join', message.params[0], message.prefix.nick.toLowerCase());
                 break;
 
             /* User has left a channel */
             case 'PART':
-                self.emit('part', message.params[0], parse(message.prefix).nick.toLowerCase());
+                self.emit('part', message.params[0], message.prefix.nick.toLowerCase());
                 break;
         }
     }
@@ -582,7 +578,7 @@ client.prototype.fastReconnect = function() {
             self.socket.pipe(self.stream);
         },25000);
         self.socket = new socket(self, self.options, server.split(':')[1], server.split(':')[0], authenticate);
-        self.socket.pipe(stream.createStream().on('data', self._fastReconnectMessage.bind(self)));
+        self.socket.pipe(stream.createStream({ parsePrefix: true }).on('data', self._fastReconnectMessage.bind(self)));
     });
 };
 
