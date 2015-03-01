@@ -40,7 +40,7 @@
     "commander": "^2.6.0",
     "cron": "^1.0.6",
     "inquirer": "^0.8.0",
-    "irc-message": "^3.0.0",
+    "irc-message": "^3.0.1",
     "promise": "^6.1.0",
     "q": "^1.2.0",
     "readable-stream": "^1.0.33",
