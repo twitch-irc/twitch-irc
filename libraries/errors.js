@@ -29,6 +29,7 @@ var errors = (function() {
         'ENETDOWN': 'Network is down.',
         'ENETUNREACH': 'Network is unreachable.',
         'ENETRESET': 'Network dropped connection because of reset.',
+        'ENOENT': 'Cannot open another socket.',
         'ENOTFOUND': 'Cannot get your address informations.',
         'ECONNABORTED': 'Software caused connection abort.',
         'ECONNRESET': 'Connection reset by peer.',

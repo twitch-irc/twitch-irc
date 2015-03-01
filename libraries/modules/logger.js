@@ -158,11 +158,6 @@ Logger.prototype.log = function(level, str) {
     else if (str.toString() == '[object Arguments]') { str = Array.prototype.slice.call(str).join(' '); }
 
     if (this.levels[level] === 7) { str = str.toUpperCase(); }
-    else {
-        if (this.levels[level] !== 6) {
-            str = str.toLowerCase();
-        }
-    }
 
     var message = this.message(level, str) + '\n';
     if (!timestamp && this.levels[level] !== 7) {
@@ -193,7 +188,7 @@ Logger.prototype.log = function(level, str) {
     }
 
     if (this.levels[level] === 6 && details) {
-        this.options.stream.write(smartTrim(message, 100, ' ', ' ...\r\n'));
+        this.options.stream.write(smartTrim(message, 100, ' ', '..\r\n'));
     }
 
     if (this.options.wstream !== null) {

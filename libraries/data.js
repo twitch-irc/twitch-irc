@@ -45,7 +45,7 @@ function createChannelUserData(channel, username, cb) {
 	channelUserData[channel][username] = tempUserData[username];
 	tempUserData[username] = null;
 	
-	cb();
+	cb(null);
 }
 
 exports.tempUserData          = tempUserData;

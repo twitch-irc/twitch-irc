@@ -30,11 +30,11 @@ var retries    = 1;
 var errorEvent = false;
 
 /* Create a new socket connection and handle socket errors */
-var createSocket = function createSocket(client, options, logger, port, host, callback) {
+var createSocket = function createSocket(client, options, port, host, callback) {
     var socket = net.connect(port, host, function() {
-        logger.event('connecting');
+        client.logger.event('connecting');
     	client.emit('connecting', host, port);
-        logger.dev('Connecting to ' + host + ' on port ' + port);
+        client.logger.dev('Connecting to ' + host + ' on port ' + port);
         callback();
     });
 
@@ -42,17 +42,19 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
         var string = util.format.apply(this, arguments);
         this.write(string + '\r\n');
         if (string.split(' ')[0] === 'PRIVMSG' && options.options.debugDetails) {
-            logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
+            client.logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
         }
     };
 
     socket.forceDisconnect = function(silent) {
+        client.connected = false;
+        client.currentChannels = [];
         silent = typeof silent !== 'undefined' ? silent : false;
         this.end();
         this.destroy();
 
         if (!silent) {
-            logger.event('disconnected');
+            client.logger.event('disconnected');
             client.emit('disconnected', errors.get('ECONNABORTED'));
         }
     };
@@ -64,10 +66,12 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
     socket.on('error', function(err) {
         if (!errorEvent && err.code !== 'ENOTFOUND') {
             errorEvent = true;
-            logger.error(errors.get(err.code));
-            logger.event('disconnected');
+            client.connected = false;
+            client.currentChannels = [];
+            client.logger.error(errors.get(err.code));
+            client.logger.event('disconnected');
             client.emit('disconnected', errors.get(err.code));
-            logger.dev('Got disconnected from server: ' + errors.get(err.code));
+            client.logger.dev('Got disconnected from server: ' + errors.get(err.code));
 
             var connection = options.connection || {};
             var reconnect = connection.reconnect || true;
@@ -82,11 +86,10 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
                     interval = 90000;
                 }
 
-                logger.info('Reconnecting in ' + (interval / 1000) + ' seconds..');
-                logger.dev('Reconnecting in ' + (interval / 1000) + ' seconds..');
+                client.logger.info('Reconnecting in ' + (interval / 1000) + ' seconds..');
 
                 setTimeout(function () {
-                    logger.event('reconnect');
+                    client.logger.event('reconnect');
                     client.emit('reconnect');
 
                     if (connection.retries !== -1) {
@@ -98,7 +101,7 @@ var createSocket = function createSocket(client, options, logger, port, host, ca
             }
 
             if (reconnect && connection.retries === 0) {
-                logger.event('connectfail');
+                client.logger.event('connectfail');
                 client.emit('connectfail');
                 errorEvent = false;
             }

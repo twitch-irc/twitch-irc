@@ -188,7 +188,7 @@ var serverList = {
 };
 
 /* Custom Twitch server pooling */
-var getServer = function getServer(type, server, port, logger, cb) {
+var getServer = function getServer(client, type, server, port, cb) {
     var serverType    = type || 'chat';
     var serverAddress = server || null;
     var serverPort    = port || 443;
@@ -218,9 +218,8 @@ var getServer = function getServer(type, server, port, logger, cb) {
                             unavailable.push(serverAddr);
                             if (unavailable.length > serverList[serverType][serverPort].length-1) {
                                 unavailable = [];
-                                logger.error('No Twitch servers available at this time, retrying in 60 seconds..');
                                 setTimeout(function(){
-                                    scan();
+                                    if (!client.connected) { scan(); }
                                 }, 60000);
                             } else {
                                 return scan();
@@ -235,7 +234,7 @@ var getServer = function getServer(type, server, port, logger, cb) {
             scan();
         }
 
-        logger.info('Searching for a Twitch server..');
+        client.logger.info('Searching for a Twitch server..');
         findServer(function(server) {
             if (server) {
                 cb(server + ':' + serverPort);
