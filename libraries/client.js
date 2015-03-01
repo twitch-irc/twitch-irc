@@ -519,6 +519,7 @@ client.prototype._fastReconnectMessage = function(message) {
 /* Connect to the server */
 client.prototype.connect = function() {
     var self = this;
+    var deferred = q.defer();
 
     var connection = self.options.connection || {};
 
@@ -527,6 +528,8 @@ client.prototype.connect = function() {
     var serverType      = connection.serverType || 'chat';
 
     servers.getServer(self, serverType, preferredServer, preferredPort, function(server){
+        deferred.resolve(true);
+
         var authenticate = function authenticate() {
             var identity = self.options.identity || {};
             var nickname = identity.username || 'justinfan' + Math.floor((Math.random() * 80000) + 1000);
@@ -543,6 +546,8 @@ client.prototype.connect = function() {
 
         self.socket.pipe(self.stream);
     });
+
+    return deferred.promise;
 };
 
 /* Gracefully reconnect to the server */
