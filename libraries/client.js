@@ -152,17 +152,26 @@ client.prototype._handleMessage = function(message) {
                 if (self.twitchClient >= 1) { self.socket.crlfWrite('TWITCHCLIENT ' + self.twitchClient); }
                 else { self.socket.crlfWrite('TWITCHCLIENT 4'); }
 
-                var timer    = 0;
                 var channels = self.options.channels || [];
 
-                channels.forEach(function(channel) {
-                    setTimeout(function(){
-                        if (self.connected) {
-                            self.join(channel);
+                function recurs(p1) {
+                    var couldJoin = false;
+                    if (channels.length >= 1) {
+                        if (self.connected && self.currentChannels.indexOf(utils.remHash(channels[p1]).toLowerCase()) === -1) {
+                            self.join(channels[p1]);
+                            couldJoin = true;
                         }
-                    }, timer);
-                    timer = timer+3000;
-                });
+                    }
+                    p1++;
+                    if (p1 >= channels.length) return;
+                    // Was already joined, skip directly to the next channel..
+                    if (!couldJoin) { recurs(p1); return; }
+                    setTimeout(function() { recurs(p1); }, 3000);
+                }
+
+                setTimeout(function() {
+                    recurs(0);
+                }, 3000);
                 break;
 
             /* Received USERSTATE from server */
@@ -475,17 +484,26 @@ client.prototype._fastReconnectMessage = function(message) {
                 if (self.twitchClient >= 1) { self.socket.crlfWrite('TWITCHCLIENT ' + self.twitchClient) }
                 else { self.socket.crlfWrite('TWITCHCLIENT 4'); }
 
-                var timer    = 0;
                 var channels = self.channels || [];
 
-                channels.forEach(function(channel) {
-                    setTimeout(function(){
-                        if (self.connected) {
-                            self.join(channel);
+                function recurs(p1) {
+                    var couldJoin = false;
+                    if (channels.length >= 1) {
+                        if (self.connected && self.currentChannels.indexOf(utils.remHash(channels[p1]).toLowerCase()) === -1) {
+                            self.join(channels[p1]);
+                            couldJoin = true;
                         }
-                    }, timer);
-                    timer = timer+3000;
-                });
+                    }
+                    p1++;
+                    if (p1 >= channels.length) return;
+                    // Was already joined, skip directly to the next channel..
+                    if (!couldJoin) { recurs(p1); return; }
+                    setTimeout(function() { recurs(p1); }, 3000);
+                }
+
+                setTimeout(function() {
+                    recurs(0);
+                }, 3000);
                 break;
 
             /* Received a notice from the server */
