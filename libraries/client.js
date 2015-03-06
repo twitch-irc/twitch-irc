@@ -723,6 +723,15 @@ client.prototype.join = function(channel) {
     // Socket isn't null and channel hasn't been joined yet..
     if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) === -1) {
         self.socket.crlfWrite('JOIN ' + utils.addHash(channel).toLowerCase());
+        request('http://chatdepot.twitch.tv/rooms/' + utils.remHash(channel).toLowerCase() + '/host_target', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+                var hostTarget = JSON.parse(body)['host_target'] || '';
+                if (hostTarget !== '') {
+                    self.logger.event('hosting');
+                    self.emit('hosting', utils.addHash(channel).toLowerCase(), hostTarget.toLowerCase(), -1);
+                }
+            }
+        });
         deferred.resolve(true);
     } else { deferred.resolve(false); }
 
