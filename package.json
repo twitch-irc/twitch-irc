@@ -18,10 +18,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/Schmoopiie/twitch-irc.git"
+    "url": "git://github.com/twitch-irc/twitch-irc.git"
   },
   "bugs": {
-    "url": "http://github.com/Schmoopiie/twitch-irc/issues"
+    "url": "http://github.com/twitch-irc/twitch-irc/issues"
   },
   "author": {
     "name": "Schmoopiie",
@@ -61,5 +61,5 @@
     "twitch-irc": "./bin/twitch-irc.js"
   },
   "directories": {},
-  "homepage": "https://github.com/Schmoopiie/twitch-irc"
+  "homepage": "https://github.com/twitch-irc/twitch-irc"
 }
