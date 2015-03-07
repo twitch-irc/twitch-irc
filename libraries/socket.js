@@ -26,12 +26,16 @@ var errors  = require('./errors');
 var net     = require('net');
 var util    = require('util');
 
-var retries    = 1;
-var errorEvent = false;
+var retries     = 1;
+var errorEvent  = false;
+var socketEnded = true;
 
 /* Create a new socket connection and handle socket errors */
 var createSocket = function createSocket(client, options, port, host, callback) {
+    socketEnded = false;
+
     var socket = net.connect(port, host, function() {
+        socketEnded = false;
         client.logger.event('connecting');
     	client.emit('connecting', host, port);
         client.logger.dev('Connecting to ' + host + ' on port ' + port);
@@ -40,13 +44,16 @@ var createSocket = function createSocket(client, options, port, host, callback) 
 
     socket.crlfWrite = function(data) {
         var string = util.format.apply(this, arguments);
-        this.write(string + '\r\n');
-        if (string.split(' ')[0] === 'PRIVMSG' && options.options.debugDetails) {
-            client.logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
+        if (!socketEnded) {
+            this.write(string + '\r\n');
+            if (string.split(' ')[0] === 'PRIVMSG' && options.options.debugDetails) {
+                client.logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
+            }
         }
     };
 
     socket.forceDisconnect = function(silent) {
+        socketEnded = true;
         client.connected = false;
         client.currentChannels = [];
         silent = typeof silent !== 'undefined' ? silent : false;
@@ -65,7 +72,8 @@ var createSocket = function createSocket(client, options, port, host, callback) 
 
     socket.on('error', function(err) {
         if (!errorEvent && err.code !== 'ENOTFOUND') {
-            errorEvent = true;
+            errorEvent  = true;
+            socketEnded = true;
             client.connected = false;
             client.currentChannels = [];
             client.logger.error(errors.get(err.code));
