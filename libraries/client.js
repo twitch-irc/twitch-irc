@@ -214,10 +214,10 @@ client.prototype._handleMessage = function(message) {
                 if (self.twitchClient !== 1 && self.twitchClient !== 2) {
                     if (message.params[1].split(' ')[0] === '-') {
                         self.logger.event('unhost');
-                        self.emit('unhost', message.params[0], message.params[1].split(' ')[1]);
+                        self.emit('unhost', utils.remHash(message.params[0]), message.params[1].split(' ')[1]);
                     } else {
                         self.logger.event('hosting');
-                        self.emit('hosting', message.params[0], message.params[1].split(' ')[0], message.params[1].split(' ')[1]);
+                        self.emit('hosting', utils.remHash(message.params[0]), utils.remHash(message.params[1].split(' ')[0]), message.params[1].split(' ')[1]);
                     }
                 }
                 break;
@@ -305,7 +305,7 @@ client.prototype._handleMessage = function(message) {
                             var viewers  = splitted[splitted.length - 2];
 
                             self.logger.event('hosted');
-                            self.emit('hosted', message.params[0], splitted[0], viewers);
+                            self.emit('hosted', utils.remHash(message.params[0]), utils.remHash(splitted[0]), viewers);
                         }
                         break;
 
@@ -728,7 +728,7 @@ client.prototype.join = function(channel) {
                 var hostTarget = JSON.parse(body)['host_target'] || '';
                 if (hostTarget !== '') {
                     self.logger.event('hosting');
-                    self.emit('hosting', utils.addHash(channel).toLowerCase(), hostTarget.toLowerCase(), -1);
+                    self.emit('hosting', utils.remHash(channel).toLowerCase(), utils.remHash(hostTarget).toLowerCase(), -1);
                 }
             }
         });
