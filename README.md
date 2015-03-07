@@ -10,12 +10,8 @@ Stable release:
 $ npm install --save twitch-irc
 ```
 
-<<<<<<< HEAD
-Would like to use the [beta version](https://github.com/Schmoopiie/twitch-irc/tree/1.1.1b) ?
-
-=======
 Beta release:
->>>>>>> 1.1.1b
+
 ```bash
 $ npm install --save twitch-irc@beta
 ```
