@@ -22,4 +22,13 @@
  * THE SOFTWARE.
  */
 
-module.exports={client:require("./libraries/client")};
+/* Cron jobs management */
+var Cron = require('cron').CronJob;
+
+module.exports = {
+    cronjobs: function cron(time, fn) {
+        return new Cron(time, function () {
+            fn();
+        }, null, false);
+    }
+};

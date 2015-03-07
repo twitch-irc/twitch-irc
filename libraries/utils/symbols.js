@@ -22,4 +22,16 @@
  * THE SOFTWARE.
  */
 
-module.exports={client:require("./libraries/client")};
+/* Percentage of a string that is symbol */
+module.exports = {
+    symbols: function(string) {
+        var count = 0;
+        for (var i = 0; i < string.length; i++) {
+            var charCode = string.substring(i, i+1).charCodeAt(0);
+            if ((charCode <= 30 || charCode >= 127) || charCode === 65533) {
+                count++;
+            }
+        }
+        return Math.ceil((count / string.length) * 100) / 100;
+    }
+};

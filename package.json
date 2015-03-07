@@ -1,6 +1,6 @@
 {
   "name": "twitch-irc",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Twitch IRC library for NodeJS.",
   "keywords": [
     "irc",
@@ -18,10 +18,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/Schmoopiie/twitch-irc.git"
+    "url": "git://github.com/twitch-irc/twitch-irc.git"
   },
   "bugs": {
-    "url": "http://github.com/Schmoopiie/twitch-irc/issues"
+    "url": "http://github.com/twitch-irc/twitch-irc/issues"
   },
   "author": {
     "name": "Schmoopiie",
@@ -36,31 +36,19 @@
   ],
   "main": "./index",
   "dependencies": {
-    "irc-message-stream": "latest",
-    "mkdirp": "latest",
-    "readable-stream": "latest",
-    "string": "latest",
-    "winston": "latest",
-    "locallydb": "latest",
-    "q": "latest",
-    "request": "latest",
-    "chalk": "latest",
-    "cron": "latest",
-    "promise": "latest",
-    "express": "latest",
-    "body-parser": "latest",
-    "method-override": "latest",
-    "passport": "latest",
-    "passport-twitch": "latest",
-    "express-session": "latest",
-    "ejs": "latest",
-    "querystring": "latest"
-  },
-  "devDependencies": {
-    "vows": "0.6.x"
+    "async": "^0.9.0",
+    "commander": "^2.6.0",
+    "cron": "^1.0.6",
+    "inquirer": "^0.8.0",
+    "irc-message": "^3.0.1",
+    "promise": "^6.1.0",
+    "q": "^1.2.0",
+    "readable-stream": "^1.0.33",
+    "request": "^2.53.0",
+    "string": "^3.0.0"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=0.12.0"
   },
   "maintainers": [
     {
@@ -68,6 +56,10 @@
       "email": "Schmoopiie@gmail.com"
     }
   ],
+  "preferGlobal": true,
+  "bin": {
+    "twitch-irc": "./bin/twitch-irc.js"
+  },
   "directories": {},
-  "homepage": "https://github.com/Schmoopiie/twitch-irc"
+  "homepage": "https://github.com/twitch-irc/twitch-irc"
 }

@@ -22,4 +22,20 @@
  * THE SOFTWARE.
  */
 
-module.exports={client:require("./libraries/client")};
+/* Capitalize username */
+var request = require('request');
+
+module.exports = {
+    capitalize: function capitalize(username, callback) {
+        if (typeof(callback) === "function") {
+            request('https://api.twitch.tv/kraken/channels/' + username.toLowerCase(), function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    return callback(JSON.parse(body)["display_name"].toString());
+                }
+                return callback(username.charAt(0).toUpperCase() + username.slice(1));
+            });
+        } else {
+            return username.charAt(0).toUpperCase() + username.slice(1);
+        }
+    }
+};

@@ -22,4 +22,14 @@
  * THE SOFTWARE.
  */
 
-module.exports={client:require("./libraries/client")};
+/* Percentage of a string that is uppercase */
+module.exports = {
+    uppercase: function(string) {
+        var chars = string.length;
+        var u_let = string.match(/[A-Z]/g);
+        if (u_let !== null) {
+            return (u_let.length / chars);
+        }
+        return 0;
+    }
+};
