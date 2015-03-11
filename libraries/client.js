@@ -231,15 +231,15 @@ client.prototype._handleMessage = function(message) {
             case 'MODE':
                 // Someone is modded on a channel..
                 if (message.params[1] === '+o') {
-                    self.moderators[message.params[0]].push(message.params[2].toLowerCase());
-                    self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    self.moderators[utils.addHash(message.params[0])].push(message.params[2].toLowerCase());
+                    self.moderators[utils.addHash(message.params[0])].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                     self.emit('mod', message.params[0], message.params[2]);
                 }
                 // Someone is un-modded on a channel..
                 else {
-                    var index = self.moderators[message.params[0]].indexOf(message.params[2].toLowerCase());
-                    if (index >= 0) { self.moderators[message.params[0]].splice(index, 1); }
-                    self.moderators[message.params[0]].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    var index = self.moderators[utils.addHash(message.params[0])].indexOf(message.params[2].toLowerCase());
+                    if (index >= 0) { self.moderators[utils.addHash(message.params[0])].splice(index, 1); }
+                    self.moderators[utils.addHash(message.params[0])].reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                     self.emit('unmod', message.params[0], message.params[2]);
                 }
                 break;
@@ -355,7 +355,7 @@ client.prototype._handleMessage = function(message) {
                 self.logger.event('join');
 
                 // Preparing the mods object to be filled..
-                if (!self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
+                if (!self.moderators[utils.addHash(message.params[0])]) { self.moderators[utils.addHash(message.params[0])] = []; }
 
                 // Adding the channel to the currentChannels so we can rejoin on reconnection..
                 if (self.currentChannels.indexOf(utils.remHash(message.params[0])) < 0) {
@@ -372,7 +372,7 @@ client.prototype._handleMessage = function(message) {
                 self.logger.event('part');
 
                 // Preparing the mods object to be filled..
-                if (self.moderators[message.params[0]]) { self.moderators[message.params[0]] = []; }
+                if (self.moderators[utils.addHash(message.params[0])]) { self.moderators[utils.addHash(message.params[0])] = []; }
 
                 self.emit('part', message.params[0], message.prefix.nick.toLowerCase());
 
@@ -962,7 +962,7 @@ client.prototype.unmod = function(channel, username) {
 client.prototype.isMod = function(channel, username) {
     var self = this;
 
-    if (self.moderators[channel].indexOf(username.toLowerCase()) >= 0) {
+    if (self.moderators[utils.addHash(channel)].indexOf(username.toLowerCase()) >= 0) {
         return true;
     }
     return false;
