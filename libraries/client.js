@@ -356,13 +356,20 @@ client.prototype._handleMessage = function(message) {
             case 'JOIN':
                 self.logger.event('join');
 
-                // Preparing the mods object to be filled..
-                if (!self.moderators[utils.addHash(message.params[0])]) { self.moderators[utils.addHash(message.params[0])] = []; }
+                if (message.prefix.nick.toLowerCase() === self.myself.toLowerCase()) {
+                    // Preparing the mods object to be filled..
+                    if (!self.moderators[utils.addHash(message.params[0])]) {
+                        self.moderators[utils.addHash(message.params[0])] = [];
+                    }
 
-                // Adding the channel to the currentChannels so we can rejoin on reconnection..
-                if (self.currentChannels.indexOf(utils.remHash(message.params[0])) < 0) {
-                    self.currentChannels.push(utils.remHash(message.params[0]));
-                    self.currentChannels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                    // Adding the channel to the currentChannels so we can rejoin on reconnection..
+                    if (self.currentChannels.indexOf(utils.remHash(message.params[0])) < 0) {
+                        self.currentChannels.push(utils.remHash(message.params[0]));
+                        self.currentChannels.reduce(function (a, b) {
+                            if (a.indexOf(b) < 0)a.push(b);
+                            return a;
+                        }, []);
+                    }
                 }
 
                 // Emit join and joinChannel..
@@ -373,15 +380,17 @@ client.prototype._handleMessage = function(message) {
             case 'PART':
                 self.logger.event('part');
 
-                // Preparing the mods object to be filled..
-                if (self.moderators[utils.addHash(message.params[0])]) { self.moderators[utils.addHash(message.params[0])] = []; }
+                if (message.prefix.nick.toLowerCase() === self.myself.toLowerCase()) {
+                    // Preparing the mods object to be filled..
+                    if (self.moderators[utils.addHash(message.params[0])]) { self.moderators[utils.addHash(message.params[0])] = []; }
+
+                    // Remove the channels from the currentChannels..
+                    var index = self.currentChannels.indexOf(utils.remHash(message.params[0]).toLowerCase());
+                    if (index !== -1) { self.currentChannels.splice(index, 1); }
+                    self.currentChannels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+                }
 
                 self.emit('part', message.params[0], message.prefix.nick.toLowerCase());
-
-                // Remove the channels from the currentChannels..
-                var index = self.currentChannels.indexOf(utils.remHash(message.params[0]).toLowerCase());
-                if (index !== -1) { self.currentChannels.splice(index, 1); }
-                self.currentChannels.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
                 break;
 
             /* Received message on a channel */
