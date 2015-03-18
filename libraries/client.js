@@ -330,6 +330,8 @@ client.prototype._handleMessage = function(message) {
     // Handling messages from TwitchNotify..
     else if (message.prefix.raw === 'twitchnotify' || message.prefix.nick === 'twitchnotify') {
         switch(true) {
+            case string(message).contains('subscribed to'):
+                break;
             /* Someone has subscribed to a channel */
             case string(message.params[1]).contains('just subscribed'):
                 self.logger.event('subscription');
