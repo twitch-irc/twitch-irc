@@ -200,7 +200,7 @@ client.prototype._handleMessage = function(message) {
                 if (self.twitchClient !== 1 && self.twitchClient !== 2) {
                     if (message.params.length >= 2) {
                         self.logger.event('timeout');
-                        self.emit('timeout', message.params[0], message.params[1].split(' ')[1]);
+                        self.emit('timeout', message.params[0], message.params[1]);
                     }
                     else {
                         self.logger.event('clearchat');
