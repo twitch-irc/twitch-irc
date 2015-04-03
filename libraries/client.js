@@ -40,9 +40,9 @@ var client = function(options) {
 
     self.setMaxListeners(0);
 
-    var logger              = require('./modules/logger');
-    self.logger             = new logger(options);
     self.options            = (typeof options != 'undefined') ? options : {};
+    var loggerClass         = self.options.loggerClass || require('./modules/logger');
+    self.logger             = new loggerClass(options);
     self.options.options    = self.options.options || {};
     self.options.connection = self.options.connection || {};
     self.reconnect          = (typeof self.options.connection.reconnect != 'undefined') ? self.options.connection.reconnect : true;
