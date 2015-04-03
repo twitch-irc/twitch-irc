@@ -46,9 +46,6 @@ var createSocket = function createSocket(client, options, port, host, callback) 
         var string = util.format.apply(this, arguments);
         if (!socketEnded) {
             this.write(string + '\r\n');
-            if (string.split(' ')[0] === 'PRIVMSG' && options.options.debugDetails) {
-                client.logger.chat('[' + string.split(' ')[1] + '] ' + client.myself + ': ' + string.split(':')[1]);
-            }
         }
     };
 

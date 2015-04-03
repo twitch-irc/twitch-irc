@@ -45,6 +45,8 @@ var client = function(options) {
     self.logger             = new loggerClass(options);
     self.options.options    = self.options.options || {};
     self.options.connection = self.options.connection || {};
+    self.debugDetails       = (self.options.options && (typeof self.options.options.debugDetails != 'undefined')) ? self.options.options.debugDetails : false;
+    self.emitSelf           = (self.options.options && (typeof self.options.options.emitSelf != 'undefined')) ? self.options.options.emitSelf : false;
     self.reconnect          = (typeof self.options.connection.reconnect != 'undefined') ? self.options.connection.reconnect : true;
     self.stream             = stream.createStream({ parsePrefix: true }).on('data', this._handleMessage.bind(this));
     self.socket             = null;
@@ -177,6 +179,7 @@ client.prototype._handleMessage = function(message) {
             /* Received USERSTATE from server */
             case 'USERSTATE':
                 _handleTags(self.myself, message.tags);
+                data.createChannelUserData(message.params[0], self.myself, function(err) {});
                 break;
 
             /* Received a notice from the server */
@@ -639,6 +642,12 @@ client.prototype.action = function(channel, message) {
     // Socket isn't null and channel has been joined..
     if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) >= 0) {
         self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :\u0001ACTION ' + message + '\u0001');
+        if (self.debugDetails) {
+            self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
+        }
+        if (self.emitSelf && data.channelUserData[utils.addHash(channel).toLowerCase()]) {
+            self.emit('action', utils.addHash(channel).toLowerCase(), data.channelUserData[utils.addHash(channel).toLowerCase()][self.myself], message);
+        }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
 
@@ -854,6 +863,12 @@ client.prototype.say = function(channel, message) {
     // Socket isn't null and channel has been joined..
     if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) >= 0) {
         self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :' + message);
+        if (self.debugDetails) {
+            self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
+        }
+        if (self.emitSelf && data.channelUserData[utils.addHash(channel).toLowerCase()]) {
+            self.emit('chat', utils.addHash(channel).toLowerCase(), data.channelUserData[utils.addHash(channel).toLowerCase()][self.myself], message);
+        }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
 
