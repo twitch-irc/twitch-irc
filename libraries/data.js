@@ -41,6 +41,12 @@ function createTempUserData(username) {
 function createChannelUserData(channel, username, cb) {
 	if (!channelUserData[channel]) { channelUserData[channel] = {}; }
 	if (!tempUserData[username]) { createTempUserData(username); }
+
+    if (tempUserData[username].special) {
+        tempUserData[username].special = tempUserData[username].special.filter(function(item, pos, self) {
+            return self.indexOf(item) == pos;
+        })
+    }
 	
 	channelUserData[channel][username] = tempUserData[username];
 	tempUserData[username] = null;
