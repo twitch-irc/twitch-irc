@@ -77,7 +77,7 @@ function connectServer(options, cb) {
             seq:  count,
             time: time
         });
-        socket.destroy();
+        try { socket.destroy(); } catch(e) {}
         count++;
         checkConnection(options, cb);
     });
@@ -88,7 +88,7 @@ function connectServer(options, cb) {
             time: undefined,
             err:  e
         });
-        socket.destroy();
+        try { socket.destroy(); } catch(e) {}
         count++;
         checkConnection(options, cb);
     });
@@ -99,7 +99,7 @@ function connectServer(options, cb) {
             time: undefined,
             err:  Error('Request timeout')
         });
-        socket.destroy();
+        try { socket.destroy(); } catch(e) {}
         count++;
         checkConnection(options, cb);
     });
