@@ -42,6 +42,8 @@ var createSocket = function createSocket(client, options, port, host, callback) 
         callback();
     });
 
+    socket.setKeepAlive(true);
+
     socket.crlfWrite = function(data) {
         var string = util.format.apply(this, arguments);
         if (!socketEnded) {
