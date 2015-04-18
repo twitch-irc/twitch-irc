@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-var data     = require('./data');
 var events   = require('events').EventEmitter;
 var pkg      = require('./../package.json');
 var q        = require('q');
@@ -59,6 +58,8 @@ var client = function(options) {
     self.port               = 443;
     self.server             = 'irc.twitch.tv';
     self.twitchClient       = self.options.options.tc || 0;
+    self.selfData           = {};
+    self.userData           = {};
 
     self.gracefulReconnection = false;
 
@@ -178,8 +179,9 @@ client.prototype._handleMessage = function(message) {
 
             /* Received USERSTATE from server */
             case 'USERSTATE':
-                _handleTags(self.myself, message.tags);
-                data.createChannelUserData(message.params[0], self.myself, function(err) {});
+                _handleTags(self.myself, message.tags, function(data) {
+                    self.selfData[message.params[0]] = data;
+                });
                 break;
 
             /* Received a notice from the server */
@@ -398,32 +400,27 @@ client.prototype._handleMessage = function(message) {
 
             /* Received message on a channel */
             case 'PRIVMSG':
-                _handleTags(message.prefix.nick, message.tags);
+                _handleTags(message.prefix.nick, message.tags, function(data) {
+                    // If channel is the same as the username sending the message, it is the broadcaster..
+                    if (message.prefix.nick === utils.remHash(message.params[0])) { data.special.push('broadcaster'); }
 
-                // If channel is the same as the username sending the message, it is the broadcaster..
-                if (message.prefix.nick === utils.remHash(message.params[0])) { data.tempUserData[message.prefix.nick].special.push('broadcaster'); }
-
-                // Add the temporary user data to the channel data..
-                data.createChannelUserData(message.params[0], message.prefix.nick, function(err) {
-                    if (!err) {
-                        // First kind of action message..
-                        if (string(message.params[1]).startsWith('\u0001ACTION')) {
-                            self.logger.event('action');
-                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
-                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
-                        }
-                        // Second kind of action message..
-                        else if (string(message.params[1]).startsWith(' \x01ACTION')) {
-                            self.logger.event('action');
-                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between(' \x01ACTION ', '\x01').s);
-                            self.emit('action', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], string(message.params[1]).between(' \x01ACTION ', '\x01').s);
-                        }
-                        // Regular chat message..
-                        else {
-                            self.logger.event('chat');
-                            self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + message.params[1]);
-                            self.emit('chat', message.params[0], data.channelUserData[message.params[0]][message.prefix.nick], message.params[1]);
-                        }
+                    // First kind of action message..
+                    if (string(message.params[1]).startsWith('\u0001ACTION')) {
+                        self.logger.event('action');
+                        self.logger.action('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                        self.emit('action', message.params[0], data, string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                    }
+                    // Second kind of action message..
+                    else if (string(message.params[1]).startsWith(' \x01ACTION')) {
+                        self.logger.event('action');
+                        self.logger.action('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                        self.emit('action', message.params[0], data, string(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                    }
+                    // Regular chat message..
+                    else {
+                        self.logger.event('chat');
+                        self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + message.params[1]);
+                        self.emit('chat', message.params[0], data, message.params[1]);
                     }
                 });
                 break;
@@ -432,11 +429,18 @@ client.prototype._handleMessage = function(message) {
 };
 
 /* Handling IRCv3 tags */
-function _handleTags(username, tags) {
-    data.createTempUserData(username);
+function _handleTags(username, tags, cb) {
+    var self = this;
+
+    self.userData = {
+        username: username,
+        special: [],
+        color: '#696969',
+        emote: {}
+    };
 
     if (typeof tags['color'] === 'string') {
-        data.tempUserData[username].color = tags['color'];
+        self.userData.color = tags['color'];
     }
 
     if (typeof tags['emotes'] === 'string') {
@@ -447,12 +451,16 @@ function _handleTags(username, tags) {
             var parts = emoticons[i].split(':');
             emotes[parts[0]] = parts[1].split(',');
         }
-        data.tempUserData[username].emote = emotes;
+        self.userData.emote = emotes;
     }
 
-    if (tags['subscriber'] === '1') { data.tempUserData[username].special.push('subscriber'); }
-    if (tags['turbo'] === '1') { data.tempUserData[username].special.push('turbo'); }
-    if (typeof tags['user_type'] === 'string') { data.tempUserData[username].special.push(tags['user_type']); }
+    if (tags['subscriber'] === '1') { self.userData.special.push('subscriber'); }
+    if (tags['turbo'] === '1') { self.userData.special.push('turbo'); }
+    if (typeof tags['user_type'] === 'string') { self.userData.special.push(tags['user_type']); }
+
+    if (typeof cb == "function") {
+        return cb(self.userData);
+    }
 }
 
 /* _handleMessage for fast reconnecting to server.. do everything silently (graceful reconnection).. */
@@ -645,8 +653,8 @@ client.prototype.action = function(channel, message) {
         if (self.debugDetails) {
             self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
         }
-        if (self.emitSelf && data.channelUserData[utils.addHash(channel).toLowerCase()]) {
-            self.emit('action', utils.addHash(channel).toLowerCase(), data.channelUserData[utils.addHash(channel).toLowerCase()][self.myself], message);
+        if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
+            self.emit('action', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
         }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
@@ -866,8 +874,8 @@ client.prototype.say = function(channel, message) {
         if (self.debugDetails) {
             self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
         }
-        if (self.emitSelf && data.channelUserData[utils.addHash(channel).toLowerCase()]) {
-            self.emit('chat', utils.addHash(channel).toLowerCase(), data.channelUserData[utils.addHash(channel).toLowerCase()][self.myself], message);
+        if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
+            self.emit('chat', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
         }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
