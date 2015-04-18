@@ -654,7 +654,7 @@ client.prototype.action = function(channel, message) {
         }
         self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :\u0001ACTION ' + message + '\u0001');
         if (self.debugDetails) {
-            self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
+            self.logger.action('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
         }
         if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
             self.emit('action', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
