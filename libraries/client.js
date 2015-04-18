@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+var async    = require('async');
 var events   = require('events').EventEmitter;
 var pkg      = require('./../package.json');
 var q        = require('q');
@@ -754,15 +755,45 @@ client.prototype.join = function(channel) {
     // Socket isn't null and channel hasn't been joined yet..
     if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) === -1) {
         self.socket.crlfWrite('JOIN ' + utils.addHash(channel).toLowerCase());
-        request('http://chatdepot.twitch.tv/rooms/' + utils.remHash(channel).toLowerCase() + '/host_target', function (err, res, body) {
-            if (!err && res.statusCode == 200) {
-                var hostTarget = JSON.parse(body)['host_target'] || '';
-                if (hostTarget !== '') {
-                    self.logger.event('hosting');
-                    self.emit('hosting', utils.remHash(channel).toLowerCase(), utils.remHash(hostTarget).toLowerCase(), -1);
+        // Do not make requests to the Twitch API if the application isn't even listening for the hosting event.
+        if (self.listeners('hosting').length >= 1) {
+            async.series([
+                    // Get the channel ID..
+                    function (callback) {
+                        request('https://api.twitch.tv/kraken/channels/' + utils.remHash(channel).toLowerCase(), function (err, res, body) {
+                            if (!err && res.statusCode == 200) {
+                                callback(null, JSON.parse(body)['_id'] || '');
+                            } else {
+                                callback('TWITCH_API_DOWN', null);
+                            }
+                        });
+                    },
+                    // Get the chatters count..
+                    function (callback) {
+                        request('https://tmi.twitch.tv/group/user/' + utils.remHash(channel).toLowerCase() + '/chatters', function (err, res, body) {
+                            if (!err && res.statusCode == 200) {
+                                callback(null, JSON.parse(body)['chatter_count']);
+                            } else {
+                                callback('TWITCH_API_DOWN', null);
+                            }
+                        });
+                    }],
+                // Check if the channel is hosting another channel and emit the event..
+                function (err, results) {
+                    if (!err) {
+                        request('http://tmi.twitch.tv/hosts?include_logins=1&host=' + results[0], function (err, res, body) {
+                            if (!err && res.statusCode == 200) {
+                                var target = JSON.parse(body)['hosts'][0]['target_login'] || '';
+                                if (target !== '') {
+                                    self.logger.event('hosting');
+                                    self.emit('hosting', utils.remHash(channel).toLowerCase(), target, results[1]);
+                                }
+                            }
+                        });
+                    }
                 }
-            }
-        });
+            );
+        }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
 
