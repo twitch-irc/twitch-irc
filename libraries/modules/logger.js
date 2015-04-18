@@ -98,13 +98,14 @@ function Logger(config) {
     }
 
     this.templates = {
-        chat:  '[:timestamp] \x1b[35mchat\x1b[39m  - :message',
+        chat:  '[:timestamp] \x1b[35mchat\x1b[39m   - :message',
+        action:  '[:timestamp] \x1b[35maction\x1b[39m - :message',
         dev:   '\x1b[90m  :message\x1b[39m',
-        raw:   '[:timestamp] \x1b[36mraw\x1b[39m   - :message',
-        event: '[:timestamp] \x1b[32mevent\x1b[39m - :message',
-        info:  '[:timestamp] \x1b[33minfo\x1b[39m  - :message',
-        error: '[:timestamp] \x1b[31merror\x1b[39m - :message',
-        crash: '[:timestamp] \x1b[31merror\x1b[39m - :message',
+        raw:   '[:timestamp] \x1b[36mraw\x1b[39m    - :message',
+        event: '[:timestamp] \x1b[32mevent\x1b[39m  - :message',
+        info:  '[:timestamp] \x1b[33minfo\x1b[39m   - :message',
+        error: '[:timestamp] \x1b[31merror\x1b[39m  - :message',
+        crash: '[:timestamp] \x1b[31merror\x1b[39m  - :message',
         inspect: true
     };
 }
@@ -131,6 +132,7 @@ Logger.prototype.tokens = {
 Logger.prototype.levels = {
     dev:  7,
     chat:  6,
+    action:  6,
     raw:   5,
     event: 4,
     info:  3,
@@ -193,7 +195,7 @@ Logger.prototype.log = function(level, str) {
 
     if (this.options.wstream !== null) {
         if (this.levels[level] === 4) {
-            if (str !== 'chat') {
+            if (str !== 'chat' && str !== 'action') {
                 this.options.wstream.write(this.message(level, str).replace(/\x1B\[\d+m/g, '') + '\n');
             }
         } else {
@@ -204,6 +206,7 @@ Logger.prototype.log = function(level, str) {
 
 /* Logger prototypes */
 Logger.prototype.chat    = function(str) { return this.log('chat', arguments) };
+Logger.prototype.action  = function(str) { return this.log('action', arguments) };
 Logger.prototype.dev     = function(str) { return this.log('dev', arguments) };
 Logger.prototype.inspect = function(obj) { return this.log('info', util.inspect(obj)); };
 Logger.prototype.raw     = function(str) { return this.log('raw', arguments); };
