@@ -649,6 +649,9 @@ client.prototype.action = function(channel, message) {
 
     // Socket isn't null and channel has been joined..
     if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) >= 0) {
+        if (message.indexOf('/me ') === 0) {
+            message = message.substring(4);
+        }
         self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :\u0001ACTION ' + message + '\u0001');
         if (self.debugDetails) {
             self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
@@ -866,21 +869,28 @@ client.prototype.raw = function(message) {
 
 client.prototype.say = function(channel, message) {
     var self     = this;
-    var deferred = q.defer();
+    if (message.indexOf('/me ') === 0) {
+        self.action(channel, message);
+    }
+    else {
+        var deferred = q.defer();
 
-    // Socket isn't null and channel has been joined..
-    if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) >= 0) {
-        self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :' + message);
-        if (self.debugDetails) {
-            self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
+        // Socket isn't null and channel has been joined..
+        if (self.socket !== null && self.currentChannels.indexOf(utils.remHash(channel).toLowerCase()) >= 0) {
+            self.socket.crlfWrite('PRIVMSG ' + utils.addHash(channel).toLowerCase() + ' :' + message);
+            if (self.debugDetails) {
+                self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
+            }
+            if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
+                self.emit('chat', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
+            }
+            deferred.resolve(true);
+        } else {
+            deferred.resolve(false);
         }
-        if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
-            self.emit('chat', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
-        }
-        deferred.resolve(true);
-    } else { deferred.resolve(false); }
 
-    return deferred.promise;
+        return deferred.promise;
+    }
 };
 
 client.prototype.slow = function(channel, seconds) {
