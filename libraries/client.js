@@ -435,6 +435,7 @@ function _handleTags(username, tags, cb) {
 
     self.userData = {
         username: username,
+        displayname: username,
         special: [],
         color: '#696969',
         emote: {}
@@ -442,6 +443,10 @@ function _handleTags(username, tags, cb) {
 
     if (typeof tags['color'] === 'string') {
         self.userData.color = tags['color'];
+    }
+
+    if (typeof tags['display-name'] === 'string') {
+        self.userData.displayname = tags['display-name'];
     }
 
     if (typeof tags['emotes'] === 'string') {
