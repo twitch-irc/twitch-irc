@@ -92,13 +92,6 @@ var client = function(options) {
 
 util.inherits(client, events);
 
-/* Remove items from array */
-Array.prototype.clean = function(deleteValue) {
-    this.map(function(value, index, array) {
-        return value === deleteValue && array.splice(index, 1) && array;
-    });
-};
-
 /* Handle all IRC messages */
 client.prototype._handleMessage = function(message) {
     var self = this;
@@ -321,7 +314,11 @@ client.prototype._handleMessage = function(message) {
                             var splitted = message.params[1].split(':');
                             var mods     = splitted[1].replace(/,/g, '').split(':').toString().toLowerCase().split(' ');
 
-                            mods.clean('');
+                            for(var i = mods.length - 1; i >= 0; i--) {
+                                if(mods[i] === '') {
+                                    mods.splice(i, 1);
+                                }
+                            }
 
                             self.logger.event('mods');
                             self.emit('mods', message.params[0], mods);
@@ -835,6 +832,7 @@ client.prototype.mods = function(channel) {
 
     return deferred.promise;
 };
+
 
 client.prototype.leave = client.prototype.part;
 client.prototype.part = function(channel) {
