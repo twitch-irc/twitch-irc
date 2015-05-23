@@ -175,6 +175,7 @@ client.prototype._handleMessage = function(message) {
             case 'USERSTATE':
                 _handleTags(self.myself, message.tags, function(data) {
                     self.selfData[message.params[0]] = data;
+
                     if (data.username.toLowerCase() === self.myself.toLowerCase() && self.currentChannels.indexOf(utils.remHash(message.params[0]).toLowerCase()) === -1) {
                         // Adding the channel to the currentChannels so we can rejoin on reconnection..
                         if (self.currentChannels.indexOf(utils.remHash(message.params[0])) < 0) {
@@ -186,7 +187,7 @@ client.prototype._handleMessage = function(message) {
                         }
 
                         self.logger.event('join');
-                        self.emit('join', message.params[0], message.prefix.nick);
+                        self.emit('join', message.params[0], self.myself.toLowerCase());
                     }
                 });
                 break;
@@ -374,6 +375,19 @@ client.prototype._handleMessage = function(message) {
                     // Preparing the mods object to be filled..
                     if (!self.moderators[utils.addHash(message.params[0])]) {
                         self.moderators[utils.addHash(message.params[0])] = [];
+                    }
+                    if (self.myself.indexOf('justinfan') === 0 && self.currentChannels.indexOf(utils.remHash(message.params[0]).toLowerCase()) === -1) {
+                        // Adding the channel to the currentChannels so we can rejoin on reconnection..
+                        if (self.currentChannels.indexOf(utils.remHash(message.params[0])) < 0) {
+                            self.currentChannels.push(utils.remHash(message.params[0]));
+                            self.currentChannels.reduce(function (a, b) {
+                                if (a.indexOf(b) < 0)a.push(b);
+                                return a;
+                            }, []);
+                        }
+
+                        self.logger.event('join');
+                        self.emit('join', message.params[0], message.prefix.nick);
                     }
                 }
                 else {
