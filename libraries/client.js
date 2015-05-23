@@ -443,7 +443,7 @@ function _handleTags(username, tags, cb) {
     }
 
     if (typeof tags['display-name'] === 'string') {
-        self.userData.displayname = tags['display-name'];
+        self.userData['display-name'] = tags['display-name'];
     }
 
     if (typeof tags['emotes'] === 'string') {
