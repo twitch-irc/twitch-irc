@@ -430,21 +430,9 @@ client.prototype._handleMessage = function(message) {
 function _handleTags(username, tags, cb) {
     var self = this;
 
-    self.userData = {
-        username: username,
-        displayname: username,
-        special: [],
-        color: '#696969',
-        emote: {}
-    };
-
-    if (typeof tags['color'] === 'string') {
-        self.userData.color = tags['color'];
-    }
-
-    if (typeof tags['display-name'] === 'string') {
-        self.userData['display-name'] = tags['display-name'];
-    }
+    self.userData = tags;
+    self.userData.username = username;
+    self.userData.special = [];
 
     if (typeof tags['emotes'] === 'string') {
         var emoticons = tags['emotes'].split('/');
