@@ -145,6 +145,9 @@ client.prototype._handleMessage = function(message) {
                 self.socket.resetRetry();
 
                 self.socket.crlfWrite('CAP REQ :twitch.tv/tags twitch.tv/commands');
+                if (self.listeners('join').length >= 1 || self.listeners('part').length >= 1) {
+                    self.socket.crlfWrite('CAP REQ :twitch.tv/membership');
+                }
 
                 if (self.twitchClient >= 1) { self.socket.crlfWrite('TWITCHCLIENT ' + self.twitchClient); }
                 else { self.socket.crlfWrite('TWITCHCLIENT 4'); }
@@ -511,6 +514,9 @@ client.prototype._fastReconnectMessage = function(message) {
                 self.socket.resetRetry();
 
                 self.socket.crlfWrite('CAP REQ :twitch.tv/tags twitch.tv/commands');
+                if (self.listeners('join').length >= 1 || self.listeners('part').length >= 1) {
+                    self.socket.crlfWrite('CAP REQ :twitch.tv/membership');
+                }
 
                 if (self.twitchClient >= 1) { self.socket.crlfWrite('TWITCHCLIENT ' + self.twitchClient) }
                 else { self.socket.crlfWrite('TWITCHCLIENT 4'); }
