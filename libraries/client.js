@@ -626,6 +626,10 @@ client.prototype.fastReconnect = function() {
             var nickname = identity.username || 'justinfan' + Math.floor((Math.random() * 80000) + 1000);
             var password = identity.password || 'SCHMOOPIIE';
 
+            if (password !== 'SCHMOOPIIE' && password.indexOf('oauth:') < 0) {
+                password = 'oauth:' + password;
+            }
+
             self.logger.event('logon');
             self.emit('logon');
 
