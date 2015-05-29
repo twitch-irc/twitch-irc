@@ -427,19 +427,19 @@ client.prototype._handleMessage = function(message) {
                     if (string(message.params[1]).startsWith('\u0001ACTION')) {
                         self.logger.event('action');
                         self.logger.action('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
-                        self.emit('action', message.params[0], data, string(message.params[1]).between('\u0001ACTION ', '\u0001').s);
+                        self.emit('action', message.params[0], data, string(message.params[1]).between('\u0001ACTION ', '\u0001').s, false);
                     }
                     // Second kind of action message..
                     else if (string(message.params[1]).startsWith(' \x01ACTION')) {
                         self.logger.event('action');
                         self.logger.action('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + string(message.params[1]).between(' \x01ACTION ', '\x01').s);
-                        self.emit('action', message.params[0], data, string(message.params[1]).between(' \x01ACTION ', '\x01').s);
+                        self.emit('action', message.params[0], data, string(message.params[1]).between(' \x01ACTION ', '\x01').s, false);
                     }
                     // Regular chat message..
                     else {
                         self.logger.event('chat');
                         self.logger.chat('[' + message.params[0] + '] ' + message.prefix.nick + ': ' + message.params[1]);
-                        self.emit('chat', message.params[0], data, message.params[1]);
+                        self.emit('chat', message.params[0], data, message.params[1], false);
                     }
                 });
                 break;
@@ -680,7 +680,7 @@ client.prototype.action = function(channel, message) {
             self.logger.action('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
         }
         if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
-            self.emit('action', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
+            self.emit('action', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message, true);
         }
         deferred.resolve(true);
     } else { deferred.resolve(false); }
@@ -897,7 +897,7 @@ client.prototype.say = function(channel, message) {
                 self.logger.chat('[' + utils.addHash(channel).toLowerCase() + '] ' + self.myself + ': ' + message);
             }
             if (self.emitSelf && self.selfData[utils.addHash(channel).toLowerCase()]) {
-                self.emit('chat', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message);
+                self.emit('chat', utils.addHash(channel).toLowerCase(), self.selfData[utils.addHash(channel).toLowerCase()], message, true);
             }
             deferred.resolve(true);
         } else {
