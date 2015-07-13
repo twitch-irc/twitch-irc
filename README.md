@@ -1,6 +1,9 @@
 # twitch-irc
 [![Build Status](https://secure.travis-ci.org/twitch-irc/twitch-irc.png?branch=master)](https://travis-ci.org/Schmoopiie/twitch-irc) [![Downloads](http://img.shields.io/npm/dm/twitch-irc.svg?style=flat)](https://www.npmjs.org/package/twitch-irc) [![Npm Version](http://img.shields.io/npm/v/twitch-irc.svg?style=flat)](https://www.npmjs.org/package/twitch-irc) [![Node Version](https://img.shields.io/node/v/twitch-irc.svg?style=flat)](https://www.npmjs.org/package/twitch-irc) [![Issues](http://img.shields.io/github/issues/twitch-irc/twitch-irc.svg?style=flat)](https://github.com/twitch-irc/twitch-irc/issues)
 
+# Module Deprecated
+### Please move to [tmi.js](https://github.com/Schmoopiie/tmi.js)
+
 ![](http://i.imgur.com/7PMEvN5.png)
 Twitch is a trademark or registered trademark of Twitch Interactive, Inc. in the U.S. and/or other countries. "Twitch-IRC" is not operated by, sponsored by, or affiliated with Twitch Interactive, Inc. in any way.
 
